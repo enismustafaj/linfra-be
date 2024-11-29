@@ -8,7 +8,12 @@ import org.springframework.context.annotation.Configuration
 class ClientConfiguration {
 
     @Bean
-    fun aiModelClient(modelProperties: AIModelProperties): AiModelClient {
-        return AiModelClientImpl(modelProperties)
+    fun aiConversationModelClient(modelProperties: AIModelProperties): AiConversationModelClientImpl {
+        return AiConversationModelClientImpl(modelProperties)
+    }
+
+    @Bean
+    fun aiResourceSuggestionModelClient(modelProperties: AIModelProperties): AiResourceSuggestionModelClientImpl {
+        return AiResourceSuggestionModelClientImpl(modelProperties)
     }
 }
