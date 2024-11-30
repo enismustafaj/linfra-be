@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: resource-app
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/resource_db
+    username: ${DB_USER:postgres}
+    password: ${DB_PASS:password}
+    driver-class-name: org.postgresql.Driver
+
+
+
+ai:
+  client:
+    url: ${AI_CLIENT_URL:http://localhost:1234}
+    api-key: ${AI_CLIENT_API_KEY:default-api-key}
