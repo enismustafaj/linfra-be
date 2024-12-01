@@ -2,17 +2,13 @@ package ai.linfra.resource_app.ai_model.client
 
 import ai.linfra.resource_app.ai_model.configuration.AIModelProperties
 import ai.linfra.resource_app.chat.domain.dependencies.AiConversationModel
-import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.stereotype.Component
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-@Component
-@EnableConfigurationProperties(AIModelProperties::class)
 class AiConversationModelClientImpl(
-    val aiModelProperties: AIModelProperties
+    private val aiModelProperties: AIModelProperties
 ): AiConversationModel {
 
     private val client: HttpClient = HttpClient.newHttpClient()
