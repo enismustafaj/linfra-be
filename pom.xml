@@ -71,6 +71,11 @@
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 
 
 		<dependency>
@@ -149,7 +154,7 @@
 					<compilerPlugins>
 						<plugin>spring</plugin>
 					</compilerPlugins>
-                    <jvmTarget>1.8</jvmTarget>
+                    <jvmTarget>21</jvmTarget>
                 </configuration>
 				<dependencies>
 					<dependency>
