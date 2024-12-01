@@ -33,3 +33,4 @@ jobs:
           heroku_app_name: ${{env.SERVICE}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           usedocker: true
+          stack: container
