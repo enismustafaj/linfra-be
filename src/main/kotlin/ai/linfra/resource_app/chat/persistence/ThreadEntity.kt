@@ -11,7 +11,7 @@ import java.util.UUID
 data class ThreadEntity(
 
     @Id
-    @Column(name = "thread_id", nullable = false)
+    @Column(name = "id", nullable = false)
     val threadId: UUID? = null,
 
     @Column(name = "thread_name", nullable = false)

@@ -7,6 +7,14 @@ spring:
     username: sa
     password: password
     driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    open-in-view: false
+    show-sql: false
+    generate-ddl: false
 
   flyway:
     locations: classpath:/migrations
