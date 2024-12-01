@@ -8,6 +8,11 @@ spring:
     password: password
     driver-class-name: org.h2.Driver
 
+  flyway:
+    locations: classpath:/migrations
+    enabled: true
+    out-of-order: true
+
 ai:
   client:
     url: ${AI_CLIENT_URL:http://localhost:1234}

@@ -5,6 +5,7 @@ import jakarta.persistence.*
 import java.util.UUID
 
 @Entity
+@Table(name = "chat_thread")
 data class ChatThreadEntity(
 
     @Id
