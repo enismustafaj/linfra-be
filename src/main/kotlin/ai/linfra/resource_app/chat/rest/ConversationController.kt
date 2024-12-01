@@ -15,18 +15,20 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.net.URI
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/threads")
 class ConversationController(
     private val createThreadUseCase: CreateThreadUseCase,
     private val getThreadUseCase: GetThreadUseCase,
     private val updateThreadUseCase: UpdateThreadUseCase
 ) {
 
-    @PostMapping("/threads")
+    @PostMapping
     fun createThread(@RequestBody threadDto: ThreadReqDto): ResponseEntity<ThreadResDto> {
         val chatThread = createThreadUseCase.createThread(threadDto.threadName)
         return ResponseEntity.created(URI("/threads/" + chatThread.threadId)).body(ThreadResDto(
@@ -36,13 +38,13 @@ class ConversationController(
         ))
     }
 
-    @PutMapping("/threads/{threadId}")
+    @PutMapping("/{threadId}")
     fun getResponse(@RequestBody promptDto: PromptDto, @PathVariable threadId: String): PromptDto  {
         val aiPrompt: ChatPrompt = updateThreadUseCase.updateThread(threadId, ChatPrompt(promptDto.role, promptDto.text))
         return PromptDto(aiPrompt.role, aiPrompt.text)
     }
 
-    @GetMapping("/threads")
+    @GetMapping
     fun getThreads(): ChatOverviewResDto {
         val chatThreads = getThreadUseCase.getThreads()
         return ChatOverviewResDto(
@@ -50,7 +52,7 @@ class ConversationController(
         )
     }
 
-    @GetMapping("/threads/{threadId}")
+    @GetMapping("/{threadId}")
     fun getThread(@PathVariable threadId: String): ThreadResDto {
         val chatThread = getThreadUseCase.getThread(threadId)
         return ThreadResDto(
