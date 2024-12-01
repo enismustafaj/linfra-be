@@ -26,11 +26,10 @@ jobs:
           AI_MODEL_API_KEY: ${{ secrets.AI_MODEL_API_KEY }}
           AI_CLIENT_URL: ${{ secrets.AI_CLIENT_URL }}
 
-      - name: Deploy to Heroku
+      - name: Set container stack
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{env.SERVICE}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           stack: "container"
-          usedocker: true
