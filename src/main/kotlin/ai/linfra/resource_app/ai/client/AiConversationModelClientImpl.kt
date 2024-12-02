@@ -1,9 +1,9 @@
 package ai.linfra.resource_app.ai.client
 
 import ai.linfra.resource_app.ai.configuration.AIModelProperties
-import ai.linfra.resource_app.ai.dto.ChatCompletionPayload
-import ai.linfra.resource_app.ai.dto.ChatCompletionResponse
-import ai.linfra.resource_app.ai.dto.MessagePayload
+import ai.linfra.resource_app.ai.model.ChatCompletionPayload
+import ai.linfra.resource_app.ai.model.ChatCompletionResponse
+import ai.linfra.resource_app.ai.model.MessagePayload
 import ai.linfra.resource_app.chat.domain.dependencies.AiConversationModel
 import ai.linfra.resource_app.chat.domain.model.ChatPrompt
 import kotlinx.serialization.json.Json

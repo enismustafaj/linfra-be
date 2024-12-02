@@ -1,4 +1,4 @@
-package ai.linfra.resource_app.ai.dto
+package ai.linfra.resource_app.ai.model
 
 data class ChoiceResponse(
     val finishReason: String,
