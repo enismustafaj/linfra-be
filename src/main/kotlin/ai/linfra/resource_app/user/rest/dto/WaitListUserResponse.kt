@@ -1,7 +1,7 @@
 package ai.linfra.resource_app.user.rest.dto
 
-data class UserWaitListResDTO(
+data class WaitListUserResponse(
     val id: String,
-    val fullName: String,
+    val name: String,
     val email: String,
 )

@@ -7,6 +7,7 @@ spring:
     username: sa
     password: password
     driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
       ddl-auto: none
@@ -20,6 +21,13 @@ spring:
     locations: classpath:/migrations
     enabled: true
     out-of-order: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
+          issuer-uri: https://securetoken.google.com/linfra-ai
 
 ai:
   client:
