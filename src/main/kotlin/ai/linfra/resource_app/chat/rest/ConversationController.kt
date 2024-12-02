@@ -34,21 +34,21 @@ class ConversationController(
         return ResponseEntity.created(URI("/threads/" + chatThread.threadId)).body(ThreadResDto(
             chatThread.threadId,
             chatThread.threadName,
-            chatThread.prompts.map { PromptDto(it.role, it.text) }
+            chatThread.prompts.map { PromptDto(it.role, it.content) }
         ))
     }
 
     @PutMapping("/{threadId}")
     fun getResponse(@RequestBody promptDto: PromptDto, @PathVariable threadId: String): PromptDto  {
         val aiPrompt: ChatPrompt = updateThreadUseCase.updateThread(threadId, ChatPrompt(promptDto.role, promptDto.text))
-        return PromptDto(aiPrompt.role, aiPrompt.text)
+        return PromptDto(aiPrompt.role, aiPrompt.content)
     }
 
     @GetMapping
     fun getThreads(): ChatOverviewResDto {
         val chatThreads = getThreadUseCase.getThreads()
         return ChatOverviewResDto(
-            chatThreads.map { thread -> ThreadResDto(thread.threadId, thread.threadName, thread.prompts.map {  PromptDto(it.role, it.text) }) }
+            chatThreads.map { thread -> ThreadResDto(thread.threadId, thread.threadName, thread.prompts.map {  PromptDto(it.role, it.content) }) }
         )
     }
 
@@ -58,7 +58,7 @@ class ConversationController(
         return ThreadResDto(
             chatThread.threadId,
             chatThread.threadName,
-            chatThread.prompts.map { PromptDto(it.role, it.text) }
+            chatThread.prompts.map { PromptDto(it.role, it.content) }
         )
     }
 }

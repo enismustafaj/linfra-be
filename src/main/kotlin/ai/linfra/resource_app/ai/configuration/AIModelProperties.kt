@@ -1,4 +1,4 @@
-package ai.linfra.resource_app.ai_model.configuration
+package ai.linfra.resource_app.ai.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

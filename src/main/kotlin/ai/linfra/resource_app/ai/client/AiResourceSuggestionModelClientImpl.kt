@@ -1,6 +1,6 @@
-package ai.linfra.resource_app.ai_model.client
+package ai.linfra.resource_app.ai.client
 
-import ai.linfra.resource_app.ai_model.configuration.AIModelProperties
+import ai.linfra.resource_app.ai.configuration.AIModelProperties
 import ai.linfra.resource_app.resource.domain.dependencies.AiResourceSuggestionModel
 
 class AiResourceSuggestionModelClientImpl(
