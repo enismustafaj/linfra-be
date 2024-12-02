@@ -5,21 +5,32 @@ import ai.linfra.resource_app.user.domain.model.WaitListUser
 import ai.linfra.resource_app.user.persistence.WaitListUserEntity
 import ai.linfra.resource_app.user.persistence.WaitListUserRepository
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 
 @Component
 class CreateWaitListUserImpl(
     private val waitListUserRepository: WaitListUserRepository
-): CreateWaitListUserUseCase {
+) : CreateWaitListUserUseCase {
+
     override fun createWaitListUser(waitListUser: WaitListUser): WaitListUser {
-        val savedUser: WaitListUserEntity = waitListUserRepository.save(createWaitListUserEntity(waitListUser))
+        val savedUser: WaitListUserEntity =
+            waitListUserRepository.save(createWaitListUserEntity(waitListUser))
         return toWaitListUserModel(savedUser)
     }
 
     private fun toWaitListUserModel(waitListUser: WaitListUserEntity): WaitListUser {
-        return WaitListUser(userId = waitListUser.id.toString(), email = waitListUser.email, fullName = waitListUser.fullName)
+        return WaitListUser(
+            userId = waitListUser.userId,
+            email = waitListUser.email,
+            name = waitListUser.name
+        )
     }
 
     private fun createWaitListUserEntity(waitListUser: WaitListUser): WaitListUserEntity {
-        return WaitListUserEntity(email = waitListUser.email, fullName = waitListUser.fullName)
+        return WaitListUserEntity(
+            userId = waitListUser.userId,
+            email = waitListUser.email,
+            name = waitListUser.name
+        )
     }
 }
