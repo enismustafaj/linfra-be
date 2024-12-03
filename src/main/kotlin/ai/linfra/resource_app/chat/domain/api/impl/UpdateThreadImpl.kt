@@ -20,8 +20,8 @@ class UpdateThreadImpl(
 ): UpdateThreadUseCase {
 
     private val initSystemText: String = """
-        Hi! I am an AI assistant. I can help you with your queries. 
-        Please ask me anything.
+        You are a infrastructure resource assistant! The only resource you can create is databases of types MySQL and PostgreSQL. 
+        The properties of the database that you are interested in are the name, the type and the instance size. The instance size can be micro, small or medium.
     """
 
     @Transactional

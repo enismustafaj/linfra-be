@@ -18,7 +18,7 @@ class AiConversationModelClientImpl(
 
     private val client: HttpClient = HttpClient.newHttpClient()
 
-    private val completionEndpoint: String = "v1/chat/completions"
+    private val completionEndpoint: String = "/chat/completions"
 
     private val model: String = "grok-beta"
 
@@ -30,7 +30,7 @@ class AiConversationModelClientImpl(
             .header("Content-Type", "application/json")
             .build()
 
-        val response: ChatCompletionResponse = Json.decodeFromString<ChatCompletionResponse>(client.send(httpRequest, HttpResponse.BodyHandlers.ofString()).body())
+        val response: ChatCompletionResponse = Json{ignoreUnknownKeys=true}.decodeFromString<ChatCompletionResponse>(client.send(httpRequest, HttpResponse.BodyHandlers.ofString()).body())
 
         return response.choices[0].message.content
     }

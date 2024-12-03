@@ -2,19 +2,21 @@ package ai.linfra.resource_app.chat.persistence
 
 import ai.linfra.resource_app.chat.domain.model.ChatRoleEnum
 import jakarta.persistence.*
+import lombok.Data
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 import java.util.UUID
 
+@Data
 @Entity
 @Table(name = "chat_thread")
 @EntityListeners(AuditingEntityListener::class)
-data class ChatThreadEntity(
+class ChatThreadEntity(
 
     @Id
-    @Column(name = "chat_id", nullable = false)
+    @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.UUID)
     val chatId: UUID? = null,
 

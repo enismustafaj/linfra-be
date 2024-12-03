@@ -6,4 +6,8 @@ import ai.linfra.resource_app.resource.domain.dependencies.AiResourceSuggestionM
 class AiResourceSuggestionModelClientImpl(
     private val modelProperties: AIModelProperties
 ): AiResourceSuggestionModel {
+
+    override fun suggestResource(): String {
+        TODO("Not yet implemented")
+    }
 }

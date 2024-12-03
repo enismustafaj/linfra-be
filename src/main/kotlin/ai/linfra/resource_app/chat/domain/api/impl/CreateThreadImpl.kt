@@ -5,6 +5,7 @@ import ai.linfra.resource_app.chat.domain.model.Thread
 import ai.linfra.resource_app.chat.persistence.ThreadEntity
 import ai.linfra.resource_app.chat.persistence.ThreadRepository
 import org.springframework.stereotype.Component
+import java.util.*
 
 @Component
 class CreateThreadImpl(
@@ -19,10 +20,10 @@ class CreateThreadImpl(
     }
 
     private fun createThreadModel(threadEntity: ThreadEntity): Thread  {
-        return Thread(threadId = threadEntity.threadId.toString(), threadName = threadEntity.threadName, prompts = emptyList(), userId = threadEntity.userId)
+        return Thread(threadId = threadEntity.threadId.toString(), threadName = threadEntity.threadName, prompts = emptyList(), userId = threadEntity.userId.toString())
     }
 
     private fun createThreadEntity(threadName: String): ThreadEntity  {
-        return ThreadEntity(threadName = threadName, userId = "dummyUser")
+        return ThreadEntity(threadName = threadName)
     }
 }

@@ -31,5 +31,5 @@ spring:
 
 ai:
   client:
-    url: ${AI_CLIENT_URL:http://localhost:1234}
-    api-key: ${AI_MODEL_API_KEY:default-api-key}
+    url: ${AI_CLIENT_URL:https://api.x.ai/v1}
+    api-key: ${AI_MODEL_API_KEY:xai-Xcoa2DooMU2gOuBlrCbXSKF9dNGfTsdOAZeFc3zUTE8HxjtRrSFTaCpvuFF69vSQVo6dKCnjlm9awRaX}
