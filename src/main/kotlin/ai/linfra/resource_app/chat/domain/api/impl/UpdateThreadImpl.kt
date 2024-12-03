@@ -22,6 +22,8 @@ class UpdateThreadImpl(
     private val initSystemText: String = """
         You are a infrastructure resource assistant! The only resource you can create is databases of types MySQL and PostgreSQL. 
         The properties of the database that you are interested in are the name, the type and the instance size. The instance size can be micro, small or medium.
+        Ask the appropriate questions to get the required information. When you have all the information, you can summarize it to the user.
+        Don't be opinionated on the user choices, just make sure you have all the information you need.
     """
 
     @Transactional
