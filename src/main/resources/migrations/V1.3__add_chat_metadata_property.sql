@@ -1,0 +1,1 @@
+alter table chat_thread add column metadata json null;

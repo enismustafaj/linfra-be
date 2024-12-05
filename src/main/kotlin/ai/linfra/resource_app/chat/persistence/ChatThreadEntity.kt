@@ -1,8 +1,10 @@
 package ai.linfra.resource_app.chat.persistence
 
 import ai.linfra.resource_app.chat.domain.model.ChatRoleEnum
+import io.hypersistence.utils.hibernate.type.json.JsonType
 import jakarta.persistence.*
 import lombok.Data
+import org.hibernate.annotations.Type
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -30,6 +32,10 @@ class ChatThreadEntity(
 
     @Column(name = "content", nullable = false)
     val content: String = "",
+
+    @Type(JsonType::class)
+    @Column(name = "metadata")
+    var chatMetadata: ChatMetadata? = null,
 
     @CreatedDate
     @Column(name = "created_at", nullable = false)

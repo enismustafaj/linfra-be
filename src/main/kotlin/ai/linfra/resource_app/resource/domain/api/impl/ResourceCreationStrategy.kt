@@ -6,5 +6,5 @@ interface ResourceCreationStrategy {
 
     fun supportResourceType(resourceType: String): Boolean
 
-    fun createResource(resource: ResourceDescription): ResourceDescription
+    fun createResource(chatId: String, resource: ResourceDescription): ResourceDescription
 }

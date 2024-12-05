@@ -4,10 +4,7 @@ import ai.linfra.resource_app.chat.domain.api.CreateThreadUseCase
 import ai.linfra.resource_app.chat.domain.api.GetThreadUseCase
 import ai.linfra.resource_app.chat.domain.api.UpdateThreadUseCase
 import ai.linfra.resource_app.chat.domain.model.ChatPrompt
-import ai.linfra.resource_app.chat.rest.dto.ChatOverviewResDto
-import ai.linfra.resource_app.chat.rest.dto.PromptDto
-import ai.linfra.resource_app.chat.rest.dto.ThreadReqDto
-import ai.linfra.resource_app.chat.rest.dto.ThreadResDto
+import ai.linfra.resource_app.chat.rest.dto.*
 import lombok.RequiredArgsConstructor
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -34,21 +31,21 @@ class ConversationController(
         return ResponseEntity.created(URI("/threads/" + chatThread.threadId)).body(ThreadResDto(
             chatThread.threadId,
             chatThread.threadName,
-            chatThread.prompts.map { PromptDto(it.role, it.content) }
+            chatThread.prompts.map { ChatPromptDto(it.role, it.content) }
         ))
     }
 
     @PutMapping("/{threadId}")
-    fun getResponse(@RequestBody promptDto: PromptDto, @PathVariable threadId: String): PromptDto  {
+    fun getResponse(@RequestBody promptDto: ChatPromptDto, @PathVariable threadId: String): ChatPromptDto  {
         val aiPrompt: ChatPrompt = updateThreadUseCase.updateThread(threadId, ChatPrompt(promptDto.role, promptDto.text))
-        return PromptDto(aiPrompt.role, aiPrompt.content)
+        return ChatPromptDto(aiPrompt.role, aiPrompt.content)
     }
 
     @GetMapping
     fun getThreads(): ChatOverviewResDto {
         val chatThreads = getThreadUseCase.getThreads()
         return ChatOverviewResDto(
-            chatThreads.map { thread -> ThreadResDto(thread.threadId, thread.threadName, thread.prompts.map {  PromptDto(it.role, it.content) }) }
+            chatThreads.map { thread -> ThreadResDto(thread.threadId, thread.threadName, thread.prompts.map {  ChatPromptDto(it.role, it.content) }) }
         )
     }
 
@@ -58,7 +55,7 @@ class ConversationController(
         return ThreadResDto(
             chatThread.threadId,
             chatThread.threadName,
-            chatThread.prompts.map { PromptDto(it.role, it.content) }
+            chatThread.prompts.map { ChatPromptDto(it.role, it.content) }
         )
     }
 }

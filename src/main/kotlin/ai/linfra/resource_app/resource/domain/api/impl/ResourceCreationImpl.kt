@@ -9,8 +9,8 @@ class ResourceCreationImpl(
     private val resourceCreationStrategies: List<ResourceCreationStrategy>
 ): ResourceCreationUseCase {
 
-    override fun createResource(resource: ResourceDescription): ResourceDescription {
+    override fun createResource(chatId: String, resource: ResourceDescription): ResourceDescription {
         val strategy = resourceCreationStrategies.find { it.supportResourceType(resource.resourceType.name) }
-        return strategy?.createResource(resource) ?: resource
+        return strategy?.createResource(chatId, resource) ?: resource
     }
 }
