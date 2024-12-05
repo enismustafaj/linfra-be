@@ -1,0 +1,15 @@
+@import ai.linfra.resource_app.resource.domain.model.templates.DatabaseTemplate
+
+@param DatabaseTemplate database
+
+resource "aws_db_instance" "default" {
+    allocated_storage    = 10
+    db_name              = "${database.name}"
+    engine               = ${database.engine}
+    engine_version       = "8.0"
+    instance_class       = ${database.instanceClass}
+    username             = "dummy_for_now"
+    password             = "dummy_for_now"
+    parameter_group_name = "default.mysql8.0"
+    skip_final_snapshot  = true
+}
