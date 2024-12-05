@@ -20,11 +20,10 @@ class SecurityFilter {
                     .requestMatchers(AntPathRequestMatcher("/**", "OPTIONS"))
                     .permitAll()
                     .requestMatchers("/**")
-                    .permitAll()
-//                    .authenticated()
-//                    .and()
-//                    .oauth2ResourceServer()
-//                    .jwt()
+                    .authenticated()
+                    .and()
+                    .oauth2ResourceServer()
+                    .jwt()
             } catch (e: Exception) {
                 throw RuntimeException(e)
             }
