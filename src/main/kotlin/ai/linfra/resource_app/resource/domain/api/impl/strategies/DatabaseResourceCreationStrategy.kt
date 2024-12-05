@@ -13,6 +13,7 @@ import gg.jte.TemplateEngine
 import gg.jte.output.StringOutput
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
+import java.util.*
 
 
 @Component
@@ -45,12 +46,12 @@ class DatabaseResourceCreationStrategy(
                 instanceClass = resource.resourceProperties.find { it.propertyName == "instance_class" }?.propertyValue ?: "db.t2.micro"
             )
         ))
-        return resource
+        return toResourceDomainModel(savedResource)
     }
 
     private fun createResourceTemplate(resource: DatabaseTemplate): String {
         val output = StringOutput()
-        templateEngine.render("database.kte", resource, output)
+        templateEngine.render("database.kte", mapOf("database" to resource), output)
 
         return output.toString()
     }
@@ -59,6 +60,7 @@ class DatabaseResourceCreationStrategy(
         return ResourceEntity(
             resourceName = resource.resourceName,
             resourceType = ResourceTypeEnum.DATABASE,
+            userId = UUID.randomUUID(),
             resourceProperties = toResourceProperties(resource.resourceProperties)
         )
     }
@@ -66,6 +68,24 @@ class DatabaseResourceCreationStrategy(
     private fun toResourceProperties(resourceProperties: List<ResourceProperty>): List<ai.linfra.resource_app.resource.persistence.ResourceProperty> {
         return resourceProperties.map {
             ai.linfra.resource_app.resource.persistence.ResourceProperty(
+                propertyName = it.propertyName,
+                propertyValue = it.propertyValue
+            )
+        }
+    }
+
+    private fun toResourceDomainModel(resource: ResourceEntity): ResourceDescription {
+        return ResourceDescription(
+            resourceId = resource.id!!.toString(),
+            resourceName = resource.resourceName!!,
+            resourceType = resource.resourceType!!,
+            resourceProperties = toResourcePropertiesDomainModel(resource.resourceProperties!!)
+        )
+    }
+
+    private fun toResourcePropertiesDomainModel(resourceProperties: List<ai.linfra.resource_app.resource.persistence.ResourceProperty>): List<ResourceProperty> {
+        return resourceProperties.map {
+            ResourceProperty(
                 propertyName = it.propertyName,
                 propertyValue = it.propertyValue
             )

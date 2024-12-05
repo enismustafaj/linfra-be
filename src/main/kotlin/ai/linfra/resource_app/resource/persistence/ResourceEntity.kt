@@ -24,23 +24,23 @@ class ResourceEntity (
     @Column(name = "user_id")
     var userId: UUID? = null,
 
-    @Column(name = "resource_name")
+    @Column(name = "name")
     var resourceName: String? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "resource_type")
+    @Column(name = "type")
     var resourceType: ResourceTypeEnum? = null,
 
     @Type(value = JsonType::class)
-    @Column(name = "resource_properties", columnDefinition = "json")
+    @Column(name = "properties", columnDefinition = "json")
     var resourceProperties: List<ResourceProperty>? = null,
 
     @CreatedDate
     @Column(name = "created_at")
-    var createdAt: LocalDateTime? = null,
+    var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @LastModifiedDate
-    @Column(name = "updated_at")
-    var updatedAt: LocalDateTime? = null
+    @Column(name = "last_modified_at")
+    var updatedAt: LocalDateTime  = LocalDateTime.now()
 
 )

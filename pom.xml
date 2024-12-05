@@ -61,7 +61,7 @@
 		</dependency>
 		<dependency>
 			<groupId>gg.jte</groupId>
-			<artifactId>jte</artifactId>
+			<artifactId>jte-kotlin</artifactId>
 			<version>3.1.15</version>
 		</dependency>
 		<dependency>
@@ -199,6 +199,18 @@
 						<version>${kotlin.version}</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>gg.jte</groupId>
+				<artifactId>jte-maven-plugin</artifactId>
+				<version>3.1.15</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>
