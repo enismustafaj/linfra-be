@@ -5,14 +5,15 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
+import java.util.UUID
 
 @Entity(name = "wait_list_user")
 @EntityListeners(AuditingEntityListener::class)
 data class WaitListUserEntity(
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
+    @GeneratedValue(strategy = GenerationType.UUID)
+    val id: UUID? = null,
 
     @Column(name = "user_id", unique = true, nullable = false)
     val userId: String = "",
