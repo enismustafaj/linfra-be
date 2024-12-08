@@ -1,0 +1,27 @@
+name: Build and test application
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Set up JDK 21
+          uses: actions/setup-java@v3
+          with:
+            java-version: '21'
+            distribution: 'corretto'
+
+        - name: Package with Maven
+          run: |-
+            mvn package
+          env:
+            AI_MODEL_API_KEY: ${{ secrets.AI_MODEL_API_KEY }}
+            AI_CLIENT_URL: ${{ secrets.AI_CLIENT_URL }}
