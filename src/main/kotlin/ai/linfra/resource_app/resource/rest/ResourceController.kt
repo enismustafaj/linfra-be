@@ -2,6 +2,7 @@ package ai.linfra.resource_app.resource.rest
 
 import ai.linfra.resource_app.resource.rest.dto.ResourceReqDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -17,24 +18,24 @@ class ResourceController(
     private val resourceGateway: ResourceGateway
 ) {
 
-    @GetMapping
-    fun getResource(): String {
-        return "Resource"
+    @GetMapping("/{resourceId}")
+    fun getResource(@PathVariable resourceId: String): ResourceResDto {
+        return resourceGateway.getResource(resourceId)
     }
 
     @PostMapping
-    fun createResource(@RequestBody resource: ResourceReqDto): ResourceResDto? {
+    fun createResource(@RequestBody resource: ResourceReqDto): ResourceResDto {
         return resourceGateway.createResource(resource)
     }
 
     @PutMapping("/{resourceId}")
-    fun updateResource(@PathVariable resourceId: String): String {
-        return "Resource updated"
+    fun updateResource(@PathVariable resourceId: String, @RequestBody resourceUpdatePayload: ResourceReqDto): ResourceResDto {
+        return resourceGateway.updateResource(resourceId, resourceUpdatePayload)
     }
 
     @DeleteMapping("/{resourceId}")
-    fun deleteResource(@PathVariable resourceId: String): String {
-        return "Resource deleted"
+    fun deleteResource(@PathVariable resourceId: String): ResponseEntity<Void> {
+        return ResponseEntity.noContent().build()
     }
 
 }
