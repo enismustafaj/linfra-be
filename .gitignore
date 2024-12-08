@@ -28,3 +28,9 @@ replay_pid*
 
 # Target directory
 target/
+
+# Local configuration file
+src/main/resources/application-local.yaml
+
+#JTE files
+jte-classes/

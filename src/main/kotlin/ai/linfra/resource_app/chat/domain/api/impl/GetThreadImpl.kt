@@ -32,7 +32,7 @@ class GetThreadImpl(
         return Thread(
             entity.threadId.toString(),
             entity.threadName,
-            entity.userId,
+            entity.userId.toString(),
             chats.map { ChatPrompt(it.role, it.content) }
         )
     }

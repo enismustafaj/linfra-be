@@ -8,6 +8,7 @@ import ai.linfra.resource_app.chat.persistence.ChatThreadEntity
 import ai.linfra.resource_app.chat.persistence.ChatThreadRepository
 import ai.linfra.resource_app.chat.persistence.ThreadEntity
 import ai.linfra.resource_app.chat.persistence.ThreadRepository
+import jakarta.transaction.Transactional
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -18,24 +19,41 @@ class UpdateThreadImpl(
     private val chatThreadRepository: ChatThreadRepository
 ): UpdateThreadUseCase {
 
+    private val initSystemText: String = """
+        You are a infrastructure resource assistant! The only resource you can create is databases of types MySQL and PostgreSQL. 
+        The properties of the database that you are interested in are the name, the type and the instance size. The instance size can be micro, small or medium.
+    """
+
+    @Transactional
     override fun updateThread(threadId: String, prompt: ChatPrompt): ChatPrompt {
         val thread = threadRepository.findById(UUID.fromString(threadId))
             .orElseThrow { IllegalArgumentException("Thread not found") }
 
-        val aiResponse = aiModelClient.generateResponse(prompt.text)
-
         val userChatThread: ChatThreadEntity = createChatThreadEntity(prompt, thread)
-        val aiChatThread: ChatThreadEntity = createChatThreadEntity(ChatPrompt(ChatRoleEnum.AI_ASSISTANT, aiResponse), thread)
+        chatThreadRepository.save(userChatThread)
 
-        chatThreadRepository.saveAll(listOf(userChatThread, aiChatThread))
+        val aiResponse = aiModelClient.generateResponse(getChatContext(threadId))
 
-        return ChatPrompt(role = ChatRoleEnum.AI_ASSISTANT, text = aiResponse)
+        val aiChatThread: ChatThreadEntity = createChatThreadEntity(ChatPrompt(ChatRoleEnum.assistant, aiResponse), thread)
+        chatThreadRepository.save(aiChatThread)
+
+        return ChatPrompt(role = ChatRoleEnum.assistant, content = aiResponse)
+    }
+
+    private fun getChatContext(threadId: String): List<ChatPrompt> {
+        val chats: MutableList<ChatPrompt> = mutableListOf(ChatPrompt(ChatRoleEnum.system, initSystemText))
+        val thread: ThreadEntity = threadRepository.findById(UUID.fromString(threadId)).get()
+        chats.addAll(chatThreadRepository.findByThreadIdOrderByCreatedAtAsc(thread).map {
+            ChatPrompt(it.role, it.content)
+        })
+
+        return chats
     }
 
     private fun createChatThreadEntity(prompt: ChatPrompt, thread: ThreadEntity): ChatThreadEntity {
         return ChatThreadEntity(
             role = prompt.role,
-            content = prompt.text,
+            content = prompt.content,
             threadId = thread
         )
     }
