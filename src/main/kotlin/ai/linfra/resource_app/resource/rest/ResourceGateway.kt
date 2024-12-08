@@ -1,5 +1,6 @@
 package ai.linfra.resource_app.resource.rest
 
+import ai.linfra.resource_app.resource.domain.api.DeleteResourceUseCase
 import ai.linfra.resource_app.resource.domain.api.GetResourceUseCase
 import ai.linfra.resource_app.resource.domain.api.ResourceCreationUseCase
 import ai.linfra.resource_app.resource.domain.api.ResourceUpdateUseCase
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Component
 class ResourceGateway(
     private val resourceCreationUseCase: ResourceCreationUseCase,
     private val getResourceUseCase: GetResourceUseCase,
-    private val resourceUpdateUseCase: ResourceUpdateUseCase
+    private val resourceUpdateUseCase: ResourceUpdateUseCase,
+    private val deleteResourceUseCase: DeleteResourceUseCase
 ) {
 
     fun createResource(resource: ResourceReqDto): ResourceResDto {
@@ -31,6 +33,10 @@ class ResourceGateway(
     fun updateResource(resourceId: String, resource: ResourceReqDto): ResourceResDto {
         val updatedResource = resourceUpdateUseCase.updateResource(resource.chatId, resourceId, toResourceDescription(resource))
         return ResourceResDto(updatedResource.resourceId!!, updatedResource.resourceType.name, updatedResource.resourceType.name, toResourcePropertyDto(updatedResource.resourceProperties))
+    }
+
+    fun deleteResource(chatId: String, resourceId: String) {
+        deleteResourceUseCase.deleteResource(chatId, resourceId)
     }
 
     private fun toResourcePropertyDto(resourceProperties: List<ResourceProperty>): List<ResourcePropertyDto> {

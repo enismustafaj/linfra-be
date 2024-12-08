@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -34,7 +35,9 @@ class ResourceController(
     }
 
     @DeleteMapping("/{resourceId}")
-    fun deleteResource(@PathVariable resourceId: String): ResponseEntity<Void> {
+    fun deleteResource(@PathVariable resourceId: String, @RequestParam(required = true) chatId: String): ResponseEntity<Void> {
+        resourceGateway.deleteResource(chatId, resourceId)
+
         return ResponseEntity.noContent().build()
     }
 
