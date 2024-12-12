@@ -35,7 +35,7 @@ ai:
     api-key: ${AI_MODEL_API_KEY:dummy-key}
 
 resource-repository:
-  local-repo-path: ${RESOURCE_REPO_PATH:./resources}
+  local-repo-path: ${RESOURCE_REPO_PATH:src/main/resources/resource-repository}
   repo-url: ${RESOURCE_REPO_URL}
   repo-username: ${RESOURCE_REPO_USERNAME}
   repo-password: ${RESOURCE_REPO_PASSWORD}
