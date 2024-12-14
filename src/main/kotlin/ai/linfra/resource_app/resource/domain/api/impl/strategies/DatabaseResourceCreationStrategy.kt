@@ -6,12 +6,11 @@ import ai.linfra.resource_app.resource.domain.api.impl.ResourceCreationStrategy
 import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.domain.model.ResourceProperty
 import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
-import ai.linfra.resource_app.resource.domain.model.templates.DatabaseTemplate
+import ai.linfra.resource_app.resource.domain.model.event.DatabaseResourceCreatedEvent
 import ai.linfra.resource_app.resource.persistence.ResourceEntity
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
-import gg.jte.TemplateEngine
-import gg.jte.output.StringOutput
 import jakarta.transaction.Transactional
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -20,7 +19,7 @@ import java.util.*
 class DatabaseResourceCreationStrategy(
     private val resourceRepository: ResourceRepository,
     private val updateResourceChatUseCase: UpdateResourceChatUseCase,
-    private val templateEngine: TemplateEngine
+    private val applicationEventPublisher: ApplicationEventPublisher
 ): ResourceCreationStrategy {
 
     override fun supportResourceType(resourceType: String): Boolean {
@@ -39,21 +38,17 @@ class DatabaseResourceCreationStrategy(
             reference = savedResource.id.toString()
         ))
 
-        println(createResourceTemplate(
-            DatabaseTemplate(
-                name = resource.resourceName,
-                engine = resource.resourceProperties.find { it.propertyName == "engine" }?.propertyValue ?: "mysql",
-                instanceClass = resource.resourceProperties.find { it.propertyName == "instance_class" }?.propertyValue ?: "db.t2.micro"
-            )
-        ))
+        applicationEventPublisher.publishEvent(createDatabaseCreatedEvent(savedResource))
         return toResourceDomainModel(savedResource)
     }
 
-    private fun createResourceTemplate(resource: DatabaseTemplate): String {
-        val output = StringOutput()
-        templateEngine.render("database.kte", mapOf("database" to resource), output)
-
-        return output.toString()
+    private fun createDatabaseCreatedEvent(savedResource: ResourceEntity ): DatabaseResourceCreatedEvent {
+        return DatabaseResourceCreatedEvent(
+            resourceId = savedResource.id.toString(),
+            databaseName = savedResource.resourceName!!,
+            databaseEngine = savedResource.resourceProperties!!.find { it.propertyName == "engine" }?.propertyValue ?: "mysql",
+            databaseInstanceClass = savedResource.resourceProperties!!.find { it.propertyName == "instance_class" }?.propertyValue ?: "db.t2.micro"
+        )
     }
 
     private fun toResourceEntity(resource: ResourceDescription): ResourceEntity {

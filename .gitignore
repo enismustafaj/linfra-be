@@ -32,5 +32,8 @@ target/
 # Local configuration file
 src/main/resources/application-local.yaml
 
-#JTE files
+# JTE files
 jte-classes/
+
+# Resource Repository
+src/main/resources/resource-repository/

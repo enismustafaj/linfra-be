@@ -1,0 +1,32 @@
+name: Build and test application
+
+on:
+  pull_request:
+    branches:
+      - main
+env:
+  RESOURCE_REPO_URL: https://github.com/enismustafaj/infra-resources.git
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v2
+
+        - name: Set up JDK 21
+          uses: actions/setup-java@v3
+          with:
+            java-version: '21'
+            distribution: 'corretto'
+
+        - name: Package with Maven
+          run: |-
+            mvn package
+          env:
+            AI_MODEL_API_KEY: ${{ secrets.AI_MODEL_API_KEY }}
+            AI_CLIENT_URL: ${{ secrets.AI_CLIENT_URL }}
+            RESOURCE_REPO_URL: ${{ env.RESOURCE_REPO_URL }}
+            RESOURCE_REPO_USERNAME: ${{ secrets.RESOURCE_REPO_USERNAME }}
+            RESOURCE_REPO_PASSWORD: ${{ secrets.RESOURCE_REPO_PASSWORD }}

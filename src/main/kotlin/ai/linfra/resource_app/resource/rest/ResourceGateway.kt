@@ -1,6 +1,9 @@
 package ai.linfra.resource_app.resource.rest
 
+import ai.linfra.resource_app.resource.domain.api.DeleteResourceUseCase
+import ai.linfra.resource_app.resource.domain.api.GetResourceUseCase
 import ai.linfra.resource_app.resource.domain.api.ResourceCreationUseCase
+import ai.linfra.resource_app.resource.domain.api.ResourceUpdateUseCase
 import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.domain.model.ResourceProperty
 import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
@@ -11,12 +14,29 @@ import org.springframework.stereotype.Component
 
 @Component
 class ResourceGateway(
-    private val resourceCreationUseCase: ResourceCreationUseCase
+    private val resourceCreationUseCase: ResourceCreationUseCase,
+    private val getResourceUseCase: GetResourceUseCase,
+    private val resourceUpdateUseCase: ResourceUpdateUseCase,
+    private val deleteResourceUseCase: DeleteResourceUseCase
 ) {
 
     fun createResource(resource: ResourceReqDto): ResourceResDto {
         val createdResource = resourceCreationUseCase.createResource(resource.chatId, toResourceDescription(resource))
         return ResourceResDto(createdResource.resourceId!!, createdResource.resourceType.name, createdResource.resourceType.name, toResourcePropertyDto(createdResource.resourceProperties))
+    }
+
+    fun getResource(resourceId: String): ResourceResDto {
+        val resource = getResourceUseCase.getResource(resourceId)
+        return ResourceResDto(resource.resourceId!!, resource.resourceType.name, resource.resourceName, toResourcePropertyDto(resource.resourceProperties))
+    }
+
+    fun updateResource(resourceId: String, resource: ResourceReqDto): ResourceResDto {
+        val updatedResource = resourceUpdateUseCase.updateResource(resource.chatId, resourceId, toResourceDescription(resource))
+        return ResourceResDto(updatedResource.resourceId!!, updatedResource.resourceType.name, updatedResource.resourceType.name, toResourcePropertyDto(updatedResource.resourceProperties))
+    }
+
+    fun deleteResource(chatId: String, resourceId: String) {
+        deleteResourceUseCase.deleteResource(chatId, resourceId)
     }
 
     private fun toResourcePropertyDto(resourceProperties: List<ResourceProperty>): List<ResourcePropertyDto> {
