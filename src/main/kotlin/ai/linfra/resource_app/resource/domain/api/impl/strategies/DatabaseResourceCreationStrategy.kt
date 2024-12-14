@@ -38,15 +38,17 @@ class DatabaseResourceCreationStrategy(
             reference = savedResource.id.toString()
         ))
 
-        applicationEventPublisher.publishEvent(
-            DatabaseResourceCreatedEvent(
-                resourceId = savedResource.id.toString(),
-                databaseName = savedResource.resourceName!!,
-                databaseEngine = resource.resourceProperties.find { it.propertyName == "engine" }?.propertyValue ?: "mysql",
-                databaseInstanceClass = resource.resourceProperties.find { it.propertyName == "instance_class" }?.propertyValue ?: "db.t2.micro"
-            )
-        )
+        applicationEventPublisher.publishEvent(createDatabaseCreatedEvent(savedResource))
         return toResourceDomainModel(savedResource)
+    }
+
+    private fun createDatabaseCreatedEvent(savedResource: ResourceEntity ): DatabaseResourceCreatedEvent {
+        return DatabaseResourceCreatedEvent(
+            resourceId = savedResource.id.toString(),
+            databaseName = savedResource.resourceName!!,
+            databaseEngine = savedResource.resourceProperties!!.find { it.propertyName == "engine" }?.propertyValue ?: "mysql",
+            databaseInstanceClass = savedResource.resourceProperties!!.find { it.propertyName == "instance_class" }?.propertyValue ?: "db.t2.micro"
+        )
     }
 
     private fun toResourceEntity(resource: ResourceDescription): ResourceEntity {
