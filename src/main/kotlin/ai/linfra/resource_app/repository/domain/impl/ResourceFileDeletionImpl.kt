@@ -5,15 +5,17 @@ import ai.linfra.resource_app.resource.domain.dependencies.ResourceFileDeletionU
 import lombok.extern.slf4j.Slf4j
 import org.eclipse.jgit.api.Git
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import java.io.File
 
 @Slf4j
+@Component
 class ResourceFileDeletionImpl(
     private val resourceRepositoryProperties: ResourceRepositoryProperties,
     private val gitConfiguration: Git
 ): ResourceFileDeletionUseCase {
 
-    private val log = LoggerFactory.getLogger(ResourceFileDeletionImpl::class.java)
+    internal val log = LoggerFactory.getLogger(ResourceFileDeletionImpl::class.java)
 
     override fun deleteResourceFile(fileName: String) {
         val file = File(getFilePath(fileName))
