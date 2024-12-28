@@ -10,6 +10,7 @@ import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
 import ai.linfra.resource_app.resource.rest.dto.ResourcePropertyDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceReqDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto
+import ai.linfra.resource_app.resource.rest.dto.ResourcesResDto
 import org.springframework.stereotype.Component
 
 @Component
@@ -37,6 +38,15 @@ class ResourceGateway(
 
     fun deleteResource(chatId: String, resourceId: String) {
         deleteResourceUseCase.deleteResource(chatId, resourceId)
+    }
+
+    fun getResourcesForUser(): ResourcesResDto {
+        // TODO: get the userid from the token
+        val resources: List<ResourceDescription> = getResourceUseCase.getResourcesForUser("")
+
+        return ResourcesResDto(resources.map{
+            ResourceResDto(it.resourceId.toString(), it.resourceName, it.resourceType.name, toResourcePropertyDto(it.resourceProperties))
+        })
     }
 
     private fun toResourcePropertyDto(resourceProperties: List<ResourceProperty>): List<ResourcePropertyDto> {

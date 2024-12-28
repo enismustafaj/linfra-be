@@ -2,6 +2,7 @@ package ai.linfra.resource_app.resource.rest
 
 import ai.linfra.resource_app.resource.rest.dto.ResourceReqDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto
+import ai.linfra.resource_app.resource.rest.dto.ResourcesResDto
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,6 +19,11 @@ import org.springframework.web.bind.annotation.RestController
 class ResourceController(
     private val resourceGateway: ResourceGateway
 ) {
+
+    @GetMapping
+    fun gteUserResources(): ResourcesResDto {
+        return resourceGateway.getResourcesForUser()
+    }
 
     @GetMapping("/{resourceId}")
     fun getResource(@PathVariable resourceId: String): ResourceResDto {
