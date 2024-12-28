@@ -30,10 +30,9 @@ jobs:
           RESOURCE_REPO_USERNAME: ${{ secrets.RESOURCE_REPO_USERNAME }}
           RESOURCE_REPO_PASSWORD: ${{ secrets.RESOURCE_REPO_PASSWORD }}
 
-      - name: Set container stack
+      - name: Deploy to heroku
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{env.SERVICE}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
-          stack: "container"
