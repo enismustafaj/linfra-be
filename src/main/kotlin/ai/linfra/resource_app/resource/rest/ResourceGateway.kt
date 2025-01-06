@@ -22,17 +22,17 @@ class ResourceGateway(
 ) {
 
     fun createResource(resource: ResourceReqDto): ResourceResDto {
-        val createdResource = resourceCreationUseCase.createResource(resource.chatId, toResourceDescription(resource))
+        val createdResource: ResourceDescription = resourceCreationUseCase.createResource(resource.chatId, toResourceDescription(resource))
         return ResourceResDto(createdResource.resourceId!!, createdResource.resourceType.name, createdResource.resourceType.name, toResourcePropertyDto(createdResource.resourceProperties))
     }
 
     fun getResource(resourceId: String): ResourceResDto {
-        val resource = getResourceUseCase.getResource(resourceId)
+        val resource:ResourceDescription = getResourceUseCase.getResource(resourceId)
         return ResourceResDto(resource.resourceId!!, resource.resourceType.name, resource.resourceName, toResourcePropertyDto(resource.resourceProperties))
     }
 
     fun updateResource(resourceId: String, resource: ResourceReqDto): ResourceResDto {
-        val updatedResource = resourceUpdateUseCase.updateResource(resource.chatId, resourceId, toResourceDescription(resource))
+        val updatedResource: ResourceDescription = resourceUpdateUseCase.updateResource(resource.chatId, resourceId, toResourceDescription(resource))
         return ResourceResDto(updatedResource.resourceId!!, updatedResource.resourceType.name, updatedResource.resourceType.name, toResourcePropertyDto(updatedResource.resourceProperties))
     }
 

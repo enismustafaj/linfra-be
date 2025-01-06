@@ -5,6 +5,7 @@ import ai.linfra.resource_app.chat.domain.command.UpdateChatMetadataCommand
 import ai.linfra.resource_app.resource.domain.api.impl.ResourceUpdateStrategy
 import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
+import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
 import ai.linfra.resource_app.resource.persistence.ResourceEntity
 import ai.linfra.resource_app.resource.persistence.ResourceProperty
 import ai.linfra.resource_app.resource.persistence.ResourceRepository

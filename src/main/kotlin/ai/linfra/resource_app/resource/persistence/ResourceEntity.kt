@@ -1,6 +1,7 @@
 package ai.linfra.resource_app.resource.persistence
 
 import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
+import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
 import io.hypersistence.utils.hibernate.type.json.JsonType
 import jakarta.persistence.*
 import lombok.Data
@@ -30,6 +31,10 @@ class ResourceEntity (
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     var resourceType: ResourceTypeEnum? = null,
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    var resourceStatus: ResourceStatusEnum? = null,
 
     @Type(value = JsonType::class)
     @Column(name = "properties", columnDefinition = "json")
