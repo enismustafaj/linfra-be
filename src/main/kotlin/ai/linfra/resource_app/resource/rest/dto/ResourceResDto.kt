@@ -4,5 +4,6 @@ data class ResourceResDto(
     val id: String,
     val name: String,
     val resourceType: String,
+    val resourceStatus: String,
     val properties: List<ResourcePropertyDto>
 )

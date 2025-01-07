@@ -31,6 +31,7 @@ class DatabaseResourceUpdateImpl(
     ): ResourceDescription {
         val resourceEntity: ResourceEntity = resourceRepository.findById(UUID.fromString(resourceId)).orElseThrow { IllegalArgumentException("Resource with id $resourceId not found") }
         resourceEntity.resourceProperties = resource.resourceProperties.map { toResourcePropertyEntity(it) }
+        resourceEntity.resourceStatus = ResourceStatusEnum.UPDATING
         val savedResource: ResourceEntity = resourceRepository.save(resourceEntity)
         updateResourceChatUseCase.updateResourceChat(updateChatCommand(chatId, resourceId))
 
@@ -42,6 +43,7 @@ class DatabaseResourceUpdateImpl(
             resourceId = resourceEntity.id.toString(),
             resourceName = resourceEntity.resourceName!!,
             resourceType = resourceEntity.resourceType!!,
+            resourceStatus = resourceEntity.resourceStatus!!,
             resourceProperties = resourceEntity.resourceProperties!!.map { toResourceProperty(it) }
         )
     }

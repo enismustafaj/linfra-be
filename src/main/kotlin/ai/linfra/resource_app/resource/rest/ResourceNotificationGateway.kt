@@ -15,15 +15,12 @@ class ResourceNotificationGateway(
 
     fun updateResourceStatus(resourceId: String, status: String): ResourceResDto {
         val resource: ResourceDescription = resourceUpdateUseCase.updateResourceStatus(resourceId, status)
-
         return ResourceResDto(resource.resourceId!!, resource.resourceType.name, resource.resourceName, toResourcePropertyDto(resource.resourceProperties))
     }
-
 
     private fun toResourcePropertyDto(resourceProperties: List<ResourceProperty>): List<ResourcePropertyDto> {
         return resourceProperties.map {
             ResourcePropertyDto(it.propertyName, it.propertyValue)
         }
     }
-
 }

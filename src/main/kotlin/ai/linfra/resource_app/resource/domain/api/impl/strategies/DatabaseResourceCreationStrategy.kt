@@ -7,6 +7,7 @@ import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.domain.model.ResourceProperty
 import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
 import ai.linfra.resource_app.resource.domain.model.event.DatabaseResourceCreatedEvent
+import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
 import ai.linfra.resource_app.resource.persistence.ResourceEntity
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
 import jakarta.transaction.Transactional
@@ -55,6 +56,7 @@ class DatabaseResourceCreationStrategy(
         return ResourceEntity(
             resourceName = resource.resourceName,
             resourceType = ResourceTypeEnum.DATABASE,
+            resourceStatus = ResourceStatusEnum.CREATING,
             userId = UUID.randomUUID(),
             resourceProperties = toResourceProperties(resource.resourceProperties)
         )
@@ -74,6 +76,7 @@ class DatabaseResourceCreationStrategy(
             resourceId = resource.id!!.toString(),
             resourceName = resource.resourceName!!,
             resourceType = resource.resourceType!!,
+            resourceStatus = resource.resourceStatus!!,
             resourceProperties = toResourcePropertiesDomainModel(resource.resourceProperties!!)
         )
     }

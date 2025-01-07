@@ -18,6 +18,7 @@ class GetResourceImpl(
             resourceId = resource.id.toString(),
             resourceName = resource.resourceName!!,
             resourceType = resource.resourceType!!,
+            resourceStatus = resource.resourceStatus!!,
             resourceProperties = toResourcePropertyDomain(resource.resourceProperties!!)
         )
     }
@@ -31,7 +32,7 @@ class GetResourceImpl(
     override fun getResourcesForUser(userId: String): List<ResourceDescription> { 
         
         return resourceRepository.findByUserId(UUID.fromString(userId)).map { 
-            ResourceDescription(it.id.toString(), it.resourceName!!, it.resourceType!!, toResourcePropertyDomain(it.resourceProperties!!))
+            ResourceDescription(it.id.toString(), it.resourceName!!, it.resourceType!!, it.resourceStatus!!, toResourcePropertyDomain(it.resourceProperties!!))
          };
     }
 }

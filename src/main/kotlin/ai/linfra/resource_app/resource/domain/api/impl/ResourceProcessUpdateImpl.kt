@@ -29,6 +29,7 @@ class ResourceProcessUpdateImpl(
             resourceId = resourceEntity.id.toString(),
             resourceName = resourceEntity.resourceName!!,
             resourceType = resourceEntity.resourceType!!,
+            resourceStatus = resourceEntity.resourceStatus!!,
             resourceProperties = resourceEntity.resourceProperties!!.map { toResourceProperty(it) }
         )
     }
