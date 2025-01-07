@@ -5,6 +5,7 @@ import ai.linfra.resource_app.chat.domain.command.UpdateChatMetadataCommand
 import ai.linfra.resource_app.resource.domain.api.impl.ResourceUpdateStrategy
 import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.domain.model.ResourceTypeEnum
+import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
 import ai.linfra.resource_app.resource.persistence.ResourceEntity
 import ai.linfra.resource_app.resource.persistence.ResourceProperty
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
@@ -30,6 +31,7 @@ class DatabaseResourceUpdateImpl(
     ): ResourceDescription {
         val resourceEntity: ResourceEntity = resourceRepository.findById(UUID.fromString(resourceId)).orElseThrow { IllegalArgumentException("Resource with id $resourceId not found") }
         resourceEntity.resourceProperties = resource.resourceProperties.map { toResourcePropertyEntity(it) }
+        resourceEntity.resourceStatus = ResourceStatusEnum.UPDATING
         val savedResource: ResourceEntity = resourceRepository.save(resourceEntity)
         updateResourceChatUseCase.updateResourceChat(updateChatCommand(chatId, resourceId))
 
@@ -41,6 +43,7 @@ class DatabaseResourceUpdateImpl(
             resourceId = resourceEntity.id.toString(),
             resourceName = resourceEntity.resourceName!!,
             resourceType = resourceEntity.resourceType!!,
+            resourceStatus = resourceEntity.resourceStatus!!,
             resourceProperties = resourceEntity.resourceProperties!!.map { toResourceProperty(it) }
         )
     }

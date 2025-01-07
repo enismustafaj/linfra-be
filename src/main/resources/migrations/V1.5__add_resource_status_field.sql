@@ -1,0 +1,1 @@
+alter table resource add column status varchar(255) not null;
