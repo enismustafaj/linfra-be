@@ -37,3 +37,5 @@ jte-classes/
 
 # Resource Repository
 src/main/resources/resource-repository/
+
+src/main/resources/data.sql
