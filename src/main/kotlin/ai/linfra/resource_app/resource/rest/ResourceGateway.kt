@@ -23,17 +23,17 @@ class ResourceGateway(
 
     fun createResource(resource: ResourceReqDto): ResourceResDto {
         val createdResource: ResourceDescription = resourceCreationUseCase.createResource(resource.chatId, toResourceDescription(resource))
-        return ResourceResDto(createdResource.resourceId!!, createdResource.resourceName, createdResource.resourceType.name, createdResource.resourceStatus.name, toResourcePropertyDto(createdResource.resourceProperties))
+        return ResourceResDto(createdResource.resourceId!!, createdResource.resourceName, createdResource.resourceType.name, createdResource.resourceStatus!!.name, toResourcePropertyDto(createdResource.resourceProperties))
     }
 
     fun getResource(resourceId: String): ResourceResDto {
         val resource:ResourceDescription = getResourceUseCase.getResource(resourceId)
-        return ResourceResDto(resource.resourceId!!, resource.resourceName, resource.resourceType.name, resource.resourceStatus.name, toResourcePropertyDto(resource.resourceProperties))
+        return ResourceResDto(resource.resourceId!!, resource.resourceName, resource.resourceType.name, resource.resourceStatus!!.name, toResourcePropertyDto(resource.resourceProperties))
     }
 
     fun updateResource(resourceId: String, resource: ResourceReqDto): ResourceResDto {
         val updatedResource: ResourceDescription = resourceUpdateUseCase.updateResource(resource.chatId, resourceId, toResourceDescription(resource))
-        return ResourceResDto(updatedResource.resourceId!!, updatedResource.resourceType.name, updatedResource.resourceType.name, updatedResource.resourceStatus.name, toResourcePropertyDto(updatedResource.resourceProperties))
+        return ResourceResDto(updatedResource.resourceId!!, updatedResource.resourceType.name, updatedResource.resourceType.name, updatedResource.resourceStatus!!.name, toResourcePropertyDto(updatedResource.resourceProperties))
     }
 
     fun deleteResource(chatId: String, resourceId: String) {
@@ -45,7 +45,7 @@ class ResourceGateway(
         val resources: List<ResourceDescription> = getResourceUseCase.getResourcesForUser("")
 
         return ResourcesResDto(resources.map{
-            ResourceResDto(it.resourceId.toString(), it.resourceName, it.resourceType.name, it.resourceStatus.name, toResourcePropertyDto(it.resourceProperties))
+            ResourceResDto(it.resourceId.toString(), it.resourceName, it.resourceType.name, it.resourceStatus!!.name, toResourcePropertyDto(it.resourceProperties))
         })
     }
 
