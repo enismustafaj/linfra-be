@@ -1,9 +1,8 @@
 package ai.linfra.resource_app.resource.domain.model.event
 
-import com.google.gson.JsonObject
-
 data class ResourceRemoteStatusUpdatedEvent(
     val resourceId: String,
+    val userId: String,
     val status: String,
-    val metadata: JsonObject?
+    val metadata: Map<String, Any>?
 )

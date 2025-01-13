@@ -10,6 +10,7 @@ class SendEmailImpl(): SendEmailUseCase {
     override fun sendEmail(payload: EmailPayload) {
 
 
+        TODO("sen email to user whn sendgrid is integrated")
      }
 
 }
