@@ -39,3 +39,6 @@ resource-repository:
   repo-url: ${RESOURCE_REPO_URL}
   repo-username: ${RESOURCE_REPO_USERNAME}
   repo-password: ${RESOURCE_REPO_PASSWORD}
+
+sendgrid:
+  api-key: ${SENDGRID_API_KEY}
