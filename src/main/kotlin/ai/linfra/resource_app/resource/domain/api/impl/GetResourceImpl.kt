@@ -32,7 +32,7 @@ class GetResourceImpl(
     override fun getResourcesForUser(userId: String): List<ResourceDescription> { 
         
         return resourceRepository.findByUserId(UUID.fromString(userId)).map { 
-            ResourceDescription(it.id.toString(), it.resourceName!!, it.resourceType!!, it.resourceStatus!!, toResourcePropertyDomain(it.resourceProperties!!))
+            ResourceDescription(it.id.toString(), userId, it.resourceName!!, it.resourceType!!, it.resourceStatus!!, toResourcePropertyDomain(it.resourceProperties!!))
          };
     }
 }
