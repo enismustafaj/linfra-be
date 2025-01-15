@@ -30,3 +30,4 @@ jobs:
             RESOURCE_REPO_URL: ${{ env.RESOURCE_REPO_URL }}
             RESOURCE_REPO_USERNAME: ${{ secrets.RESOURCE_REPO_USERNAME }}
             RESOURCE_REPO_PASSWORD: ${{ secrets.RESOURCE_REPO_PASSWORD }}
+            SENDGRID_API_KEY: ${{secrets.SENDGRID_API_KEY}}
