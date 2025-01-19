@@ -33,7 +33,7 @@ class GetThreadImpl(
             entity.threadId.toString(),
             entity.threadName,
             entity.userId.toString(),
-            chats.map { ChatPrompt(it.role, it.content) }
+            chats.map { ChatPrompt(it.chatId.toString(), it.role, it.content) }
         )
     }
 }
