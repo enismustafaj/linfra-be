@@ -51,11 +51,9 @@ class ConversationController(
     }
 
     @GetMapping("/{threadId}")
-    fun getThread(@PathVariable threadId: String): ThreadResDto {
+    fun getThreadMessages(@PathVariable threadId: String): ThreadResDto {
         val chatThread = getThreadUseCase.getThread(threadId)
         return ThreadResDto(
-            chatThread.threadId,
-            chatThread.threadName,
             chatThread.prompts.map { ChatPromptDto(it.id!!, it.role, it.content) }
         )
     }
