@@ -26,36 +26,35 @@ class ConversationController(
 ) {
 
     @PostMapping
-    fun createThread(@RequestBody threadDto: ThreadReqDto): ResponseEntity<ThreadResDto> {
+    fun createThread(@RequestBody threadDto: ThreadReqDto): ResponseEntity<ChatThreadsResDto> {
         val chatThread = createThreadUseCase.createThread(threadDto.threadName)
-        return ResponseEntity.created(URI("/threads/" + chatThread.threadId)).body(ThreadResDto(
+        return ResponseEntity.created(URI("/threads/" + chatThread.threadId)).body(ChatThreadsResDto(
             chatThread.threadId,
-            chatThread.threadName,
-            chatThread.prompts.map { ChatPromptDto(it.role, it.content) }
+            chatThread.threadName
         ))
     }
 
     @PutMapping("/{threadId}")
-    fun getResponse(@RequestBody promptDto: ChatPromptDto, @PathVariable threadId: String): ChatPromptDto  {
-        val aiPrompt: ChatPrompt = updateThreadUseCase.updateThread(threadId, ChatPrompt(promptDto.role, promptDto.text))
-        return ChatPromptDto(aiPrompt.role, aiPrompt.content)
+    fun getResponse(@RequestBody promptDto: ChatPromptDto, @PathVariable threadId: String): ChatResponseResDto  {
+        val aiPrompt: List<ChatPrompt> = updateThreadUseCase.updateThread(threadId, ChatPrompt(role = promptDto.role, content = promptDto.text))
+        return ChatResponseResDto(
+            prompts = aiPrompt.map { prompt -> ChatPromptDto(prompt.id!!, prompt.role, prompt.content) }
+        )
     }
 
     @GetMapping
     fun getThreads(): ChatOverviewResDto {
         val chatThreads = getThreadUseCase.getThreads()
         return ChatOverviewResDto(
-            chatThreads.map { thread -> ThreadResDto(thread.threadId, thread.threadName, thread.prompts.map {  ChatPromptDto(it.role, it.content) }) }
+            chatThreads.map { thread -> ChatThreadsResDto(thread.threadId, thread.threadName) }
         )
     }
 
     @GetMapping("/{threadId}")
-    fun getThread(@PathVariable threadId: String): ThreadResDto {
+    fun getThreadMessages(@PathVariable threadId: String): ThreadResDto {
         val chatThread = getThreadUseCase.getThread(threadId)
         return ThreadResDto(
-            chatThread.threadId,
-            chatThread.threadName,
-            chatThread.prompts.map { ChatPromptDto(it.role, it.content) }
+            chatThread.prompts.map { ChatPromptDto(it.id!!, it.role, it.content) }
         )
     }
 }

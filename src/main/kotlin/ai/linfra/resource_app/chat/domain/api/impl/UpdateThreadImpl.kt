@@ -25,26 +25,27 @@ class UpdateThreadImpl(
     """
 
     @Transactional
-    override fun updateThread(threadId: String, prompt: ChatPrompt): ChatPrompt {
+    override fun updateThread(threadId: String, prompt: ChatPrompt): List<ChatPrompt> {
         val thread = threadRepository.findById(UUID.fromString(threadId))
             .orElseThrow { IllegalArgumentException("Thread not found") }
 
-        val userChatThread: ChatThreadEntity = createChatThreadEntity(prompt, thread)
-        chatThreadRepository.save(userChatThread)
+        val userChatThread: ChatThreadEntity = chatThreadRepository.save(createChatThreadEntity(prompt, thread))
 
         val aiResponse = aiModelClient.generateResponse(getChatContext(threadId))
 
-        val aiChatThread: ChatThreadEntity = createChatThreadEntity(ChatPrompt(ChatRoleEnum.assistant, aiResponse), thread)
-        chatThreadRepository.save(aiChatThread)
+        val aiChatThread: ChatThreadEntity = chatThreadRepository.save(createChatThreadEntity(ChatPrompt(role = ChatRoleEnum.assistant, content = aiResponse), thread))
 
-        return ChatPrompt(role = ChatRoleEnum.assistant, content = aiResponse)
+        return listOf(
+            ChatPrompt(id = userChatThread.chatId.toString(), role = ChatRoleEnum.user, content = prompt.content),
+            ChatPrompt(id = aiChatThread.chatId.toString(), role = ChatRoleEnum.assistant, content = aiResponse)
+        )
     }
 
     private fun getChatContext(threadId: String): List<ChatPrompt> {
-        val chats: MutableList<ChatPrompt> = mutableListOf(ChatPrompt(ChatRoleEnum.system, initSystemText))
+        val chats: MutableList<ChatPrompt> = mutableListOf(ChatPrompt(role = ChatRoleEnum.system, content = initSystemText))
         val thread: ThreadEntity = threadRepository.findById(UUID.fromString(threadId)).get()
         chats.addAll(chatThreadRepository.findByThreadIdOrderByCreatedAtAsc(thread).map {
-            ChatPrompt(it.role, it.content)
+            ChatPrompt(id = it.chatId.toString(), role = it.role, content = it.content)
         })
 
         return chats
