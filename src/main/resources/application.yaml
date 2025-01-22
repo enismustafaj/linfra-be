@@ -42,3 +42,6 @@ resource-repository:
 
 sendgrid:
   api-key: ${SENDGRID_API_KEY}
+
+keystore:
+  password: ${KEYSTORE_PASSWORD}
