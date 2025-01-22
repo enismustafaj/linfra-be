@@ -1,4 +1,4 @@
-package ai.linfra.resource_app.resource.rest
+package ai.linfra.resource_app.resource.rest.gateway
 
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestMapping
@@ -19,6 +19,6 @@ class ResourceNotificationController(
     @PutMapping("/{resourceId}")
     fun updateResource(@PathVariable requestId: String, @RequestBody resourceNotification: ResourceNotificationDto): ResponseEntity<ResourceResDto> {
 
-        return ResponseEntity.ok(resourceNotificationGateway.updateResourceStatus(requestId, resourceNotification.status))
+        return ResponseEntity.ok(resourceNotificationGateway.updateResourceStatus(requestId, resourceNotification))
     }
 }

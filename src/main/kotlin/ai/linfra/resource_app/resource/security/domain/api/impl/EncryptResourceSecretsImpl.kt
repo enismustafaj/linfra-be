@@ -17,7 +17,7 @@ class EncryptResourceSecretsImpl(
     val resourceSecretsRepository: ResourceSecretsRepository
 ): EncryptResourceSecretsUseCase {
 
-    internal val resourceKeyName: String = ""
+    internal val resourceKeyName: String = "resource"
 
     override fun encryptSecrets(secrets: JsonObject, resourceId: String) {
         val cipher: Cipher = Cipher.getInstance("AES/ECB/NoPadding")

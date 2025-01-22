@@ -1,4 +1,4 @@
-package ai.linfra.resource_app.resource.rest
+package ai.linfra.resource_app.resource.rest.gateway
 
 import ai.linfra.resource_app.resource.domain.api.DeleteResourceUseCase
 import ai.linfra.resource_app.resource.domain.api.GetResourceUseCase

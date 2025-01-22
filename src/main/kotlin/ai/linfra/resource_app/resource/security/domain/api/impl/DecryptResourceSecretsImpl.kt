@@ -19,7 +19,7 @@ class DecryptResourceSecretsImpl(
     val resourceSecretsRepository: ResourceSecretsRepository
 ): DecryptResourceSecretsUseCase {
 
-    internal val resourceKeyName: String = ""
+    internal val resourceKeyName: String = "resource"
 
     override fun decryptResourceSecrets(resourceId: String): JsonObject {
         val resourceSecretsEntity: ResourceSecretsEntity = resourceSecretsRepository.findOneByResourceId(UUID.fromString(resourceId))
