@@ -6,6 +6,6 @@ import java.util.UUID
 
 interface ResourceSecretsRepository: JpaRepository<ResourceSecretsEntity, UUID> {
 
-    @Query("select ResourceSecretsEntity rse where rse.resourceId = :resourceId")
+    @Query("select rse from ResourceSecretsEntity rse where rse.resourceId = :resourceId")
     fun findOneByResourceId(resourceId: UUID): ResourceSecretsEntity?
 }

@@ -1,4 +1,4 @@
-package ai.linfra.resource_app.resource.rest.gateway
+package ai.linfra.resource_app.resource.rest
 
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.bind.annotation.RequestMapping
@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto;
 import ai.linfra.resource_app.resource.rest.dto.ResourceNotificationDto
+import ai.linfra.resource_app.resource.rest.gateway.ResourceNotificationGateway
 
 @RestController
 @RequestMapping("/api/v1/notifications/resources")

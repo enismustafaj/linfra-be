@@ -13,11 +13,11 @@ class ResourceKeyStoreConfiguration(
     val keyStoreProperties: KeyStoreProperties
 ) {
 
-    internal val keyStorePath: String = "classpath:keystore/resourceKeyStore.jks"
+    internal val keyStorePath: String = "src/main/resources/keystore/resourceKeyStore.jks"
 
     @Bean
     fun createKeyStore(): KeyStore {
-        val keyStore: KeyStore = KeyStore.getInstance("JKS")
+        val keyStore: KeyStore = KeyStore.getInstance("JCEKS")
 
         val keyFileStream: FileInputStream = FileInputStream(keyStorePath)
         keyStore.load(keyFileStream, keyStoreProperties.password.toCharArray())
