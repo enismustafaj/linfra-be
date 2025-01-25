@@ -44,7 +44,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        <dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-authorization-server</artifactId>
+		</dependency>
+		<dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>spring-cloud-gcp-security-firebase</artifactId>
             <version>${google-cloud.version}</version>
