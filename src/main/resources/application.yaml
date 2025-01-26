@@ -35,6 +35,9 @@ spring:
           jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
           issuer-uri: https://securetoken.google.com/linfra-ai
 
+jwt:
+  jwks: ${JWKS}
+
 ai:
   client:
     url: ${AI_CLIENT_URL:https://api.x.ai/v1}
