@@ -48,7 +48,7 @@ class ResourceController(
         return ResponseEntity.noContent().build()
     }
 
-    @GetMapping("/chatThreads/{chatThreadId}")
+    @GetMapping("/chat-threads/{chatThreadId}")
     fun getResourceForChatThread(@PathVariable chatThreadId: String): ResourceResDto {
         return resourceGateway.getResourceForChatThreadId(chatThreadId)
     }
