@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity
 
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto;
 import ai.linfra.resource_app.resource.rest.dto.ResourceNotificationDto
+import ai.linfra.resource_app.resource.rest.gateway.ResourceNotificationGateway
 
 @RestController
 @RequestMapping("/api/v1/notifications/resources")
@@ -19,6 +20,6 @@ class ResourceNotificationController(
     @PutMapping("/{resourceId}")
     fun updateResource(@PathVariable requestId: String, @RequestBody resourceNotification: ResourceNotificationDto): ResponseEntity<ResourceResDto> {
 
-        return ResponseEntity.ok(resourceNotificationGateway.updateResourceStatus(requestId, resourceNotification.status))
+        return ResponseEntity.ok(resourceNotificationGateway.updateResourceStatus(requestId, resourceNotification))
     }
 }

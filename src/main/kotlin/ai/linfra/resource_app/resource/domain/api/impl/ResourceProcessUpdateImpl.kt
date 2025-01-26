@@ -7,19 +7,26 @@ import java.util.UUID
 import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.persistence.ResourceEntity
 import ai.linfra.resource_app.resource.persistence.ResourceProperty
-import ai.linfra.resource_app.resource.domain.api.ResourceProcessUpdateUseCase
+import ai.linfra.resource_app.resource.domain.api.ResourceRemoteUpdateUseCase
 import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
+import ai.linfra.resource_app.resource.domain.model.command.ResourceRemoteUpdateCommand
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
+import ai.linfra.resource_app.resource.security.domain.api.EncryptResourceSecretsUseCase
 
 @Component
 class ResourceProcessUpdateImpl(
     private val resourceRepository: ResourceRepository,
-): ResourceProcessUpdateUseCase {
+    private val encryptResourceSecretsUseCase: EncryptResourceSecretsUseCase
+): ResourceRemoteUpdateUseCase {
 
     @Transactional
-    override fun updateResourceStatus(resourceId: String, status: String): ResourceDescription {
+    override fun updateResourceStatus(resourceId: String, command: ResourceRemoteUpdateCommand): ResourceDescription {
         val resourceEntity: ResourceEntity = resourceRepository.findById(UUID.fromString(resourceId)).orElseThrow { IllegalArgumentException("Resource with id $resourceId not found") }
-        resourceEntity.resourceStatus = ResourceStatusEnum.valueOf(status)
+        resourceEntity.resourceStatus = ResourceStatusEnum.valueOf(command.status.name)
+
+        if (command.status == ResourceStatusEnum.CREATED) {
+            encryptResourceSecretsUseCase.encryptSecrets(command.data, resourceId)
+        }
 
         return toResourceDescription(resourceEntity)
     }

@@ -3,6 +3,7 @@ package ai.linfra.resource_app.resource.rest
 import ai.linfra.resource_app.resource.rest.dto.ResourceReqDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto
 import ai.linfra.resource_app.resource.rest.dto.ResourcesResDto
+import ai.linfra.resource_app.resource.rest.gateway.ResourceGateway
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping

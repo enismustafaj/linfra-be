@@ -24,10 +24,23 @@ spring:
 
   security:
     oauth2:
+      authorization-server:
+        client:
+          infra-state:
+            registration:
+              client-id: ${INFRA_STATE_CLIENT_ID}
+              client-secret: ${INFRA_STATE_CLIENT_SECRET}
+              authorization-grant-types:
+                - client_credentials
+              client-authentication-methods:
+                - client_secret_basic
       resourceserver:
         jwt:
           jwk-set-uri: https://www.googleapis.com/robot/v1/metadata/jwk/securetoken@system.gserviceaccount.com
           issuer-uri: https://securetoken.google.com/linfra-ai
+
+jwt:
+  jwks: ${JWKS}
 
 ai:
   client:
@@ -42,3 +55,6 @@ resource-repository:
 
 sendgrid:
   api-key: ${SENDGRID_API_KEY}
+
+keystore:
+  password: ${KEYSTORE_PASSWORD}

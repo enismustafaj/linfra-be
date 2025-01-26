@@ -1,20 +1,23 @@
-package ai.linfra.resource_app.resource.rest
+package ai.linfra.resource_app.resource.rest.gateway
 
 import org.springframework.stereotype.Component
 
-import ai.linfra.resource_app.resource.domain.api.ResourceProcessUpdateUseCase
+import ai.linfra.resource_app.resource.domain.api.ResourceRemoteUpdateUseCase
 import ai.linfra.resource_app.resource.domain.model.ResourceDescription
 import ai.linfra.resource_app.resource.domain.model.ResourceProperty
+import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
+import ai.linfra.resource_app.resource.domain.model.command.ResourceRemoteUpdateCommand
+import ai.linfra.resource_app.resource.rest.dto.ResourceNotificationDto
 import ai.linfra.resource_app.resource.rest.dto.ResourcePropertyDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto
 
 @Component
 class ResourceNotificationGateway(
-    val resourceUpdateUseCase: ResourceProcessUpdateUseCase
+    val resourceUpdateUseCase: ResourceRemoteUpdateUseCase
 ) {
 
-    fun updateResourceStatus(resourceId: String, status: String): ResourceResDto {
-        val resource: ResourceDescription = resourceUpdateUseCase.updateResourceStatus(resourceId, status)
+    fun updateResourceStatus(resourceId: String, resourceDto: ResourceNotificationDto): ResourceResDto {
+        val resource: ResourceDescription = resourceUpdateUseCase.updateResourceStatus(resourceId, ResourceRemoteUpdateCommand(ResourceStatusEnum.valueOf(resourceDto.status), resourceDto.resourceData))
         return ResourceResDto(
             id = resource.resourceId!!, 
             name = resource.resourceName, 
