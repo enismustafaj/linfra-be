@@ -23,7 +23,8 @@ class ResourceNotificationGateway(
             name = resource.resourceName, 
             resourceType = resource.resourceType.name, 
             resourceStatus = resource.resourceStatus!!.name,
-            properties = toResourcePropertyDto(resource.resourceProperties)
+            properties = toResourcePropertyDto(resource.resourceProperties),
+            chatThreadId = resource.chatThreadId
         )
     }
 
