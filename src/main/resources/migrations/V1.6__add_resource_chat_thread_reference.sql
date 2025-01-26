@@ -1,0 +1,1 @@
+alter table resource add column chat_thread_id varchar(255) not null;
