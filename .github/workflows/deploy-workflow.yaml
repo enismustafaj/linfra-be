@@ -30,6 +30,10 @@ jobs:
           RESOURCE_REPO_USERNAME: ${{ secrets.RESOURCE_REPO_USERNAME }}
           RESOURCE_REPO_PASSWORD: ${{ secrets.RESOURCE_REPO_PASSWORD }}
           SENDGRID_API_KEY: ${{secrets.SENDGRID_API_KEY}}
+          KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
+          JWKS: ${{secrets.JWKS}}
+          INFRA_STATE_CLIENT_ID: ${{secrets.INFRA_STATE_CLIENT_ID}}
+          INFRA_STATE_CLIENT_SECRET: ${{secrets.INFRA_STATE_CLIENT_SECRET}}
 
       - name: Deploy to heroku
         uses: akhileshns/heroku-deploy@v3.13.15
