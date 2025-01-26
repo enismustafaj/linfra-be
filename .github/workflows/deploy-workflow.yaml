@@ -35,6 +35,10 @@ jobs:
           INFRA_STATE_CLIENT_ID: ${{secrets.INFRA_STATE_CLIENT_ID}}
           INFRA_STATE_CLIENT_SECRET: ${{secrets.INFRA_STATE_CLIENT_SECRET}}
 
+      - name: Install heroku cli
+        run: |
+          curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
+
       - name: Deploy to heroku
         uses: akhileshns/heroku-deploy@v3.13.15
         with:
