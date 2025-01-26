@@ -6,6 +6,9 @@ import java.util.UUID
 
 interface ResourceRepository: JpaRepository<ResourceEntity, UUID> {
     
-    @Query("select r from ResourceEntity r where userId = :userId")
-    fun findByUserId(userId: UUID): List<ResourceEntity>
+    @Query("select r from ResourceEntity r where r.userId = :userId")
+    fun findByUserId(userId: String): List<ResourceEntity>
+
+    @Query("select r from ResourceEntity r where r.chatThreadId = :chatThreadId")
+    fun findByChatThreadId(chatThreadId: String): ResourceEntity
 }

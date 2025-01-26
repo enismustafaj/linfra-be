@@ -23,17 +23,17 @@ class ResourceGateway(
 
     fun createResource(resource: ResourceReqDto): ResourceResDto {
         val createdResource: ResourceDescription = resourceCreationUseCase.createResource(resource.chatId, toResourceDescription(resource))
-        return ResourceResDto(createdResource.resourceId!!, createdResource.resourceName, createdResource.resourceType.name, createdResource.resourceStatus!!.name, toResourcePropertyDto(createdResource.resourceProperties))
+        return toResourceResDto(createdResource)
     }
 
     fun getResource(resourceId: String): ResourceResDto {
-        val resource:ResourceDescription = getResourceUseCase.getResource(resourceId)
-        return ResourceResDto(resource.resourceId!!, resource.resourceName, resource.resourceType.name, resource.resourceStatus!!.name, toResourcePropertyDto(resource.resourceProperties))
+        val resource: ResourceDescription = getResourceUseCase.getResource(resourceId)
+        return toResourceResDto(resource)
     }
 
     fun updateResource(resourceId: String, resource: ResourceReqDto): ResourceResDto {
         val updatedResource: ResourceDescription = resourceUpdateUseCase.updateResource(resource.chatId, resourceId, toResourceDescription(resource))
-        return ResourceResDto(updatedResource.resourceId!!, updatedResource.resourceType.name, updatedResource.resourceType.name, updatedResource.resourceStatus!!.name, toResourcePropertyDto(updatedResource.resourceProperties))
+        return toResourceResDto(updatedResource)
     }
 
     fun deleteResource(chatId: String, resourceId: String) {
@@ -45,8 +45,17 @@ class ResourceGateway(
         val resources: List<ResourceDescription> = getResourceUseCase.getResourcesForUser("")
 
         return ResourcesResDto(resources.map{
-            ResourceResDto(it.resourceId.toString(), it.resourceName, it.resourceType.name, it.resourceStatus!!.name, toResourcePropertyDto(it.resourceProperties))
+            ResourceResDto(it.resourceId.toString(), it.resourceName, it.chatThreadId, it.resourceType.name, it.resourceStatus!!.name, toResourcePropertyDto(it.resourceProperties))
         })
+    }
+
+    fun getResourceForChatThreadId(chatThreadId: String): ResourceResDto {
+        val resource: ResourceDescription = getResourceUseCase.getResourceForChatThreadId(chatThreadId)
+        return toResourceResDto(resource)
+    }
+
+    private fun toResourceResDto(resource: ResourceDescription): ResourceResDto {
+        return ResourceResDto(resource.resourceId!!, resource.resourceName, resource.chatThreadId, resource.resourceType.name, resource.resourceStatus!!.name, toResourcePropertyDto(resource.resourceProperties))
     }
 
     private fun toResourcePropertyDto(resourceProperties: List<ResourceProperty>): List<ResourcePropertyDto> {
@@ -59,7 +68,8 @@ class ResourceGateway(
         return ResourceDescription(
             resourceName = resource.name,
             resourceType = ResourceTypeEnum.valueOf(resource.resourceType),
-            resourceProperties = toResourceProperty(resource.properties)
+            resourceProperties = toResourceProperty(resource.properties),
+            chatThreadId = resource.chatThreadId
         )
     }
 

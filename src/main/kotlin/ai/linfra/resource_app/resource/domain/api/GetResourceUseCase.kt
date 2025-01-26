@@ -6,4 +6,6 @@ interface GetResourceUseCase {
     fun getResource(resourceId: String): ResourceDescription
 
     fun getResourcesForUser(userId: String): List<ResourceDescription>
+
+    fun getResourceForChatThreadId(chatThreadId: String): ResourceDescription
 }

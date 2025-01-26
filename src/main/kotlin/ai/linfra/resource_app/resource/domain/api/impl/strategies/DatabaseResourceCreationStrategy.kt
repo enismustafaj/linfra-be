@@ -15,7 +15,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Component
 import java.util.*
 
-
 @Component
 class DatabaseResourceCreationStrategy(
     private val resourceRepository: ResourceRepository,
@@ -57,7 +56,8 @@ class DatabaseResourceCreationStrategy(
             resourceName = resource.resourceName,
             resourceType = ResourceTypeEnum.DATABASE,
             resourceStatus = ResourceStatusEnum.CREATING,
-            userId = UUID.randomUUID(),
+            userId = UUID.randomUUID().toString(),
+            chatThreadId = resource.chatThreadId,
             resourceProperties = toResourceProperties(resource.resourceProperties)
         )
     }
@@ -77,7 +77,8 @@ class DatabaseResourceCreationStrategy(
             resourceName = resource.resourceName!!,
             resourceType = resource.resourceType!!,
             resourceStatus = resource.resourceStatus!!,
-            resourceProperties = toResourcePropertiesDomainModel(resource.resourceProperties!!)
+            resourceProperties = toResourcePropertiesDomainModel(resource.resourceProperties!!),
+            chatThreadId = resource.chatThreadId!!
         )
     }
 

@@ -37,7 +37,8 @@ class ResourceProcessUpdateImpl(
             resourceName = resourceEntity.resourceName!!,
             resourceType = resourceEntity.resourceType!!,
             resourceStatus = resourceEntity.resourceStatus!!,
-            resourceProperties = resourceEntity.resourceProperties!!.map { toResourceProperty(it) }
+            resourceProperties = resourceEntity.resourceProperties!!.map { toResourceProperty(it) },
+            chatThreadId = resourceEntity.chatThreadId!!
         )
     }
 

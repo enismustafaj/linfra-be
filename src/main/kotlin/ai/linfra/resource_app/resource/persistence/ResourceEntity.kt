@@ -23,7 +23,10 @@ class ResourceEntity (
     var id: UUID? = null,
 
     @Column(name = "user_id")
-    var userId: UUID? = null,
+    var userId: String? = null,
+
+    @Column(name = "chat_thread_id")
+    var chatThreadId: String? = null,
 
     @Column(name = "name")
     var resourceName: String? = null,
