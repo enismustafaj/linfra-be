@@ -24,11 +24,11 @@ data class UserEntity(
     val referenceId: String = "",
 
     @CreatedDate
-    @Column(name = "created_date")
-    val createdDate: LocalDateTime? = null,
+    @Column(name = "created_at")
+    var createdAt: LocalDateTime = LocalDateTime.now(),
 
     @LastModifiedDate
-    @Column(name = "last_modified_date")
-    val lastModifiedDate: LocalDateTime? = null
+    @Column(name = "last_modified_at")
+    var updatedAt: LocalDateTime  = LocalDateTime.now()
 ) {
 }
