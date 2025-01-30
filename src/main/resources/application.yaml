@@ -58,3 +58,6 @@ sendgrid:
 
 keystore:
   password: ${KEYSTORE_PASSWORD}
+
+firebase:
+  credentials: ${FIREBASE_CREDENTIALS}
