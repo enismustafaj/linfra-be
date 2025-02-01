@@ -1,7 +1,7 @@
 package ai.linfra.resource_app.chat.domain.api
 
-import ai.linfra.resource_app.chat.domain.model.ChatPrompt
+import ai.linfra.resource_app.chat.domain.model.Thread
 
 interface UpdateThreadUseCase {
-    fun updateThread(threadId: String, prompt: ChatPrompt): List<ChatPrompt>
+    fun updateThreadName(threadId: String, threadName: String): Thread
 }

@@ -20,7 +20,7 @@ class ThreadEntity(
     val threadId: UUID? = null,
 
     @Column(name = "thread_name", nullable = false)
-    val threadName: String = "",
+    var threadName: String = "",
 
     @Column(name = "user_id", nullable = false)
     val userId: UUID = UUID.randomUUID(),

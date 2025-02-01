@@ -61,3 +61,6 @@ keystore:
 
 firebase:
   credentials: ${FIREBASE_CREDENTIALS}
+
+tfbe:
+  token: ${TFBE_TOKEN}
