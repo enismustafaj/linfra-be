@@ -1,0 +1,1 @@
+alter table resource add column url varchar(255);

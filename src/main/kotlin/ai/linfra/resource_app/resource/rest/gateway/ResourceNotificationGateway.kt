@@ -10,6 +10,7 @@ import ai.linfra.resource_app.resource.domain.model.command.ResourceRemoteUpdate
 import ai.linfra.resource_app.resource.rest.dto.ResourceNotificationDto
 import ai.linfra.resource_app.resource.rest.dto.ResourcePropertyDto
 import ai.linfra.resource_app.resource.rest.dto.ResourceResDto
+import ai.linfra.resource_app.resource.security.domain.model.ResourceCredentials
 
 @Component
 class ResourceNotificationGateway(
@@ -17,7 +18,7 @@ class ResourceNotificationGateway(
 ) {
 
     fun updateResourceStatus(resourceId: String, resourceDto: ResourceNotificationDto): ResourceResDto {
-        val resource: ResourceDescription = resourceUpdateUseCase.updateResourceStatus(resourceId, ResourceRemoteUpdateCommand(ResourceStatusEnum.valueOf(resourceDto.status), resourceDto.resourceData))
+        val resource: ResourceDescription = resourceUpdateUseCase.updateResourceStatus(resourceId, toResourceRemoteUpdateCommand(resourceDto))
         return ResourceResDto(
             id = resource.resourceId!!, 
             name = resource.resourceName, 
@@ -26,6 +27,11 @@ class ResourceNotificationGateway(
             properties = toResourcePropertyDto(resource.resourceProperties),
             chatThreadId = resource.chatThreadId
         )
+    }
+
+    private fun toResourceRemoteUpdateCommand(resourceDto: ResourceNotificationDto): ResourceRemoteUpdateCommand {
+        val resourceCredentials = if (resourceDto.resourceCredentialsDto != null) ResourceCredentials(resourceDto.resourceCredentialsDto.username, resourceDto.resourceCredentialsDto.password) else null
+        return ResourceRemoteUpdateCommand(ResourceStatusEnum.valueOf(resourceDto.status), resourceDto.url, resourceCredentials)
     }
 
     private fun toResourcePropertyDto(resourceProperties: List<ResourceProperty>): List<ResourcePropertyDto> {

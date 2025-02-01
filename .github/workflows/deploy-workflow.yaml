@@ -34,6 +34,8 @@ jobs:
           JWKS: ${{secrets.JWKS}}
           INFRA_STATE_CLIENT_ID: ${{secrets.INFRA_STATE_CLIENT_ID}}
           INFRA_STATE_CLIENT_SECRET: ${{secrets.INFRA_STATE_CLIENT_SECRET}}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          TFBE_TOKEN: ${{ secrets.TFBE_TOKEN}}
 
       - name: Install heroku cli
         run: |
@@ -45,3 +47,16 @@ jobs:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{env.SERVICE}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
+        env:
+          AI_MODEL_API_KEY: ${{ secrets.AI_MODEL_API_KEY }}
+          AI_CLIENT_URL: ${{ secrets.AI_CLIENT_URL }}
+          RESOURCE_REPO_URL: ${{ env.RESOURCE_REPO_URL }}
+          RESOURCE_REPO_USERNAME: ${{ secrets.RESOURCE_REPO_USERNAME }}
+          RESOURCE_REPO_PASSWORD: ${{ secrets.RESOURCE_REPO_PASSWORD }}
+          SENDGRID_API_KEY: ${{secrets.SENDGRID_API_KEY}}
+          KEYSTORE_PASSWORD: ${{secrets.KEYSTORE_PASSWORD}}
+          JWKS: ${{secrets.JWKS}}
+          INFRA_STATE_CLIENT_ID: ${{secrets.INFRA_STATE_CLIENT_ID}}
+          INFRA_STATE_CLIENT_SECRET: ${{secrets.INFRA_STATE_CLIENT_SECRET}}
+          FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+          TFBE_TOKEN: ${{ secrets.TFBE_TOKEN}}

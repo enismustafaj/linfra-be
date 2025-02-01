@@ -54,6 +54,8 @@ class SecurityFilter(
                 config
                     .requestMatchers(AntPathRequestMatcher("/**", "OPTIONS"))
                     .permitAll()
+                    .requestMatchers("/api/v1/users/**", "POST")
+                    .permitAll()
                     .requestMatchers("/**")
                     .authenticated()
             } catch (e: Exception) {

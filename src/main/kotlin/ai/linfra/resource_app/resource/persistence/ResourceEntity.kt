@@ -43,6 +43,9 @@ class ResourceEntity (
     @Column(name = "properties", columnDefinition = "json")
     var resourceProperties: List<ResourceProperty>? = null,
 
+    @Column(name = "url")
+    var resourceUrl: String? = null,
+
     @CreatedDate
     @Column(name = "created_at")
     var createdAt: LocalDateTime = LocalDateTime.now(),

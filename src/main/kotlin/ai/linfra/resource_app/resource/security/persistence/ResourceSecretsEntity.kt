@@ -1,7 +1,9 @@
 package ai.linfra.resource_app.resource.security.persistence
 
+import io.hypersistence.utils.hibernate.type.json.JsonType
 import jakarta.persistence.*
 import lombok.Data
+import org.hibernate.annotations.Type
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -21,8 +23,9 @@ class ResourceSecretsEntity(
     @Column(name = "resource_id")
     var resourceId: UUID,
 
-    @Column(name = "secret")
-    var secret: String,
+    @Type(value = JsonType::class)
+    @Column(name = "resource_credentials")
+    var credentials: ResourceCredentials,
 
     @CreatedDate
     @Column(name = "created_at")
