@@ -47,6 +47,7 @@ jobs:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{env.SERVICE}}
           heroku_email: ${{secrets.HEROKU_EMAIL}}
+          usedocker: true
         env:
           AI_MODEL_API_KEY: ${{ secrets.AI_MODEL_API_KEY }}
           AI_CLIENT_URL: ${{ secrets.AI_CLIENT_URL }}
