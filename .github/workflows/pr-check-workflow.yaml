@@ -35,3 +35,5 @@ jobs:
             JWKS: ${{ secrets.JWKS }}
             INFRA_STATE_CLIENT_ID: ${{ secrets.INFRA_STATE_CLIENT_ID }}
             INFRA_STATE_CLIENT_SECRET: ${{ secrets.INFRA_STATE_CLIENT_SECRET }}
+            FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
+            TFBE_TOKEN: ${{ secrets.TFBE_TOKEN}}
