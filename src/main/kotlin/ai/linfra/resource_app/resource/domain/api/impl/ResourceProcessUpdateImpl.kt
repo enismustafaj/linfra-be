@@ -12,6 +12,7 @@ import ai.linfra.resource_app.resource.domain.model.ResourceStatusEnum
 import ai.linfra.resource_app.resource.domain.model.command.ResourceRemoteUpdateCommand
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
 import ai.linfra.resource_app.resource.security.domain.api.EncryptResourceSecretsUseCase
+import ai.linfra.resource_app.resource.security.domain.model.ResourceCredentials
 
 @Component
 class ResourceProcessUpdateImpl(
@@ -23,9 +24,12 @@ class ResourceProcessUpdateImpl(
     override fun updateResourceStatus(resourceId: String, command: ResourceRemoteUpdateCommand): ResourceDescription {
         val resourceEntity: ResourceEntity = resourceRepository.findById(UUID.fromString(resourceId)).orElseThrow { IllegalArgumentException("Resource with id $resourceId not found") }
         resourceEntity.resourceStatus = ResourceStatusEnum.valueOf(command.status.name)
+        command.url?.let {
+            resourceEntity.resourceUrl = command.url
+        }
 
         if (command.status == ResourceStatusEnum.CREATED) {
-            encryptResourceSecretsUseCase.encryptSecrets(command.data, resourceId)
+            encryptResourceSecretsUseCase.encryptSecrets(ResourceCredentials(command.credentials!!.username, command.credentials.password), resourceId)
         }
 
         return toResourceDescription(resourceEntity)
