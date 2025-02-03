@@ -63,5 +63,7 @@ jobs:
             INFRA_STATE_CLIENT_SECRET=${{ secrets.INFRA_STATE_CLIENT_SECRET }} \
             FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }} \
             TFBE_TOKEN=${{ secrets.TFBE_TOKEN }} \
-            RESOURCE_REPO_URL=${{ secrets.RESOURCE_REPO_URL }} \
+            RESOURCE_REPO_URL=${{ env.RESOURCE_REPO_URL }} \
             --app linfra
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
