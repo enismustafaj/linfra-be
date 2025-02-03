@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 env:
   SERVICE: linfra
-  RESOURCE_REPO_URL: https://github.com/enismustafaj/infra-resources.git
+  RESOURCE_REPO_URL: https://github.com/enismustafaj/infra-resources
 
 jobs:
   deploy:
