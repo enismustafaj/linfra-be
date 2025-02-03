@@ -6,6 +6,7 @@ import gg.jte.resolve.DirectoryCodeResolver
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.ResourceLoader
 import java.nio.file.Path
 
 
@@ -13,7 +14,7 @@ import java.nio.file.Path
 class JteConfiguration {
 
     @Bean
-    fun templateEngine(): TemplateEngine {
-        return TemplateEngine.create(DirectoryCodeResolver(Path.of(ClassPathResource("templates").path)), ContentType.Plain)
+    fun templateEngine(resourceLoader: ResourceLoader): TemplateEngine {
+        return TemplateEngine.create(DirectoryCodeResolver(Path.of(resourceLoader.getResource("classpath:templates/").file.path)), ContentType.Plain)
     }
 }
