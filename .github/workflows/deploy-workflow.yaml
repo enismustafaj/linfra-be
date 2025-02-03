@@ -43,18 +43,18 @@ jobs:
 
       - name: Set heroku env variables
         run: |
-          heroku config:set AI_MODEL_API_KEY=${{ secrets.AI_MODEL_API_KEY }}
-          heroku config:set AI_CLIENT_URL=${{ secrets.AI_CLIENT_URL }}
-          heroku config:set RESOURCE_REPO_USERNAME=${{ secrets.RESOURCE_REPO_USERNAME }}
-          heroku config:set RESOURCE_REPO_PASSWORD=${{ secrets.RESOURCE_REPO_PASSWORD }}
-          heroku config:set SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
-          heroku config:set KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}
-          heroku config:set JWKS=${{ secrets.JWKS }}
-          heroku config:set INFRA_STATE_CLIENT_ID=${{ secrets.INFRA_STATE_CLIENT_ID }}
-          heroku config:set INFRA_STATE_CLIENT_SECRET=${{ secrets.INFRA_STATE_CLIENT_SECRET }}
-          heroku config:set FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }}
-          heroku config:set TFBE_TOKEN=${{ secrets.TFBE_TOKEN }}
-          heroku config:set RESOURCE_REPO_URL=${{ secrets.RESOURCE_REPO_URL }}
+          heroku config:set AI_MODEL_API_KEY=${{ secrets.AI_MODEL_API_KEY }} --app linfra
+          heroku config:set AI_CLIENT_URL=${{ secrets.AI_CLIENT_URL }} --app linfra
+          heroku config:set RESOURCE_REPO_USERNAME=${{ secrets.RESOURCE_REPO_USERNAME }} --app linfra
+          heroku config:set RESOURCE_REPO_PASSWORD=${{ secrets.RESOURCE_REPO_PASSWORD }} --app linfra
+          heroku config:set SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }} --app linfra
+          heroku config:set KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }} --app linfra
+          heroku config:set JWKS=${{ secrets.JWKS }} --app linfra
+          heroku config:set INFRA_STATE_CLIENT_ID=${{ secrets.INFRA_STATE_CLIENT_ID }} --app linfra
+          heroku config:set INFRA_STATE_CLIENT_SECRET=${{ secrets.INFRA_STATE_CLIENT_SECRET }} --app linfra
+          heroku config:set FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }} --app linfra
+          heroku config:set TFBE_TOKEN=${{ secrets.TFBE_TOKEN }} --app linfra
+          heroku config:set RESOURCE_REPO_URL=${{ secrets.RESOURCE_REPO_URL }} --app linfra
 
       - name: Deploy to heroku
         uses: akhileshns/heroku-deploy@v3.13.15
