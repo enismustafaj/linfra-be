@@ -1,4 +1,4 @@
-FROM openjdk
+FROM amazoncorretto:21
 COPY target/resource-app*.jar resource-app.jar
 EXPOSE 8080
 
