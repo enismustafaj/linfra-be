@@ -64,6 +64,6 @@ jobs:
             FIREBASE_CREDENTIALS=${{ secrets.FIREBASE_CREDENTIALS }} \
             TFBE_TOKEN=${{ secrets.TFBE_TOKEN }} \
             RESOURCE_REPO_URL=${{ env.RESOURCE_REPO_URL }} \
-            --app linfra
+            --app ${{env.SERVICE}}
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}

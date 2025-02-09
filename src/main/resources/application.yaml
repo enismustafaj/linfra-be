@@ -1,3 +1,7 @@
+server:
+  tomcat:
+    max-threads: 10
+
 spring:
   application:
     name: resource-app
