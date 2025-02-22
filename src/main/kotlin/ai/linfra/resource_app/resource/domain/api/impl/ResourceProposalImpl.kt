@@ -19,7 +19,7 @@ class ResourceProposalImpl(
                 aiResourceSuggestionModel.suggestResource(threadId)
 
         if (resourceSuggestion == null || !resourceSuggestion.isValidSuggestion()) {
-            throw RuntimeException("")
+            return ""
         }
 
         val resourceSuggestionString =
