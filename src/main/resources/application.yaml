@@ -22,6 +22,14 @@ spring:
     show-sql: false
     generate-ddl: false
 
+  ai:
+    openai:
+      api-key: ${AI_MODEL_API_KEY:dummy-key}
+      base-url: https://api.x.ai
+      chat:
+        options:
+          model: grok-2-latest
+
   flyway:
     locations: classpath:/migrations
     enabled: true
