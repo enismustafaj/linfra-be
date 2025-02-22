@@ -12,45 +12,56 @@ import org.springframework.ai.chat.messages.UserMessage
 import org.springframework.ai.chat.model.ChatModel
 import org.springframework.ai.chat.model.ChatResponse
 import org.springframework.ai.chat.prompt.Prompt
-import org.springframework.ai.openai.OpenAiChatOptions
 import org.springframework.ai.converter.BeanOutputConverter
+import org.springframework.ai.openai.OpenAiChatOptions
 import org.springframework.ai.openai.api.ResponseFormat
-import com.nimbusds.jose.util.Resource
 
 class AiResourceSuggestionModelClientImpl(
-    private val chatModel: ChatModel,
-    private val getThreadUseCase: GetThreadUseCase
-): AiResourceSuggestionModel {
+        private val chatModel: ChatModel,
+        private val getThreadUseCase: GetThreadUseCase
+) : AiResourceSuggestionModel {
 
-    internal val outputConverter: BeanOutputConverter<ResourceSuggestion> = BeanOutputConverter(ResourceSuggestion::class.java)
+    internal val outputConverter: BeanOutputConverter<ResourceSuggestion> =
+            BeanOutputConverter(ResourceSuggestion::class.java)
 
-    internal val initSystemprompt: String = """
+    internal val initSystemprompt: String =
+            """
         You are a database infrastructure adivisor. The only database types you support are PostgreSQL and MySQL.
         The database sizes you support are small and medium. Extract the database properties from the
         conversation provided to you.
     """
 
     override fun suggestResource(threadId: String): ResourceSuggestion? {
-        val chatResponse: ChatResponse = chatModel.call(buildRecommendationPrompt(threadId));
+        val chatResponse: ChatResponse = chatModel.call(buildRecommendationPrompt(threadId))
 
-        return outputConverter.convert(chatResponse.getResult().getOutput().getText()))
+        return outputConverter.convert(chatResponse.getResult().getOutput().getText())
     }
 
     private fun buildRecommendationPrompt(threadId: String): Prompt {
-        val thread: Thread = getThreadUseCase.getThread(threadId);
-        val messages: List<Message> = thread.prompts.filter { chatPrompt -> excludeSystemAndResourceManagerMessages(chatPrompt) }
-        .map { buildPromptMessage(it) }
+        val thread: Thread = getThreadUseCase.getThread(threadId)
+        val messages: List<Message> =
+                thread.prompts
+                        .filter { chatPrompt ->
+                            excludeSystemAndResourceManagerMessages(chatPrompt)
+                        }
+                        .map { buildPromptMessage(it) }
         return Prompt(messages)
     }
 
     private fun excludeSystemAndResourceManagerMessages(chatPrompt: ChatPrompt): Boolean {
-        return chatPrompt.role != ChatRoleEnum.system && chatPrompt.role != ChatRoleEnum.resource_manager;
+        return chatPrompt.role != ChatRoleEnum.system &&
+                chatPrompt.role != ChatRoleEnum.resource_manager
     }
 
     private fun buildPromptOptions(): OpenAiChatOptions {
         return OpenAiChatOptions.builder()
-                    .responseFormat(ResponseFormat(ResponseFormat.Type.JSON_SCHEMA, outputConverter.getJsonSchema()))
-                    .build()
+                .responseFormat(
+                        ResponseFormat(
+                                ResponseFormat.Type.JSON_SCHEMA,
+                                outputConverter.getJsonSchema()
+                        )
+                )
+                .build()
     }
 
     private fun buildPromptMessage(chatPrompt: ChatPrompt): Message {
