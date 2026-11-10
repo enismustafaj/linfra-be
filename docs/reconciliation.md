@@ -1,7 +1,8 @@
 # Reconciliation
 
 The provider is the source of truth. Every minute the reconciler compares what Docker has against what Linfra
-recorded and reports the differences. It is **report-only**.
+recorded and records the differences as [findings](remediation.md). It never acts on the provider itself: users
+resolve findings with the actions each one offers.
 
 ## Findings
 
@@ -14,7 +15,7 @@ recorded and reports the differences. It is **report-only**.
 | Duplicate | More than one resource with the same `intent_id` | Reported |
 | Stuck | `APPROVED` or `APPLYING` with no live lease for longer than `stuck-after` | Reported |
 
-**Report-only on purpose:**
+**Why the reconciler never acts on its own:**
 - **No adopting:** the worker's `find()` already adopts. One writer for outcomes means no race between two
   recovery paths.
 - **No deleting:** an unexpected resource may need a human's attention; deleting it automatically is the kind of
@@ -34,8 +35,7 @@ its job in one query and returns whether a live lease exists and since when a wo
 
 ## Output
 
-- `GET /api/v1/reconciliation`: the latest report, limited to the caller's tenant. Orphans without a tenant label are
-  operator-only.
+- Findings, with actions to resolve them: see [remediation.md](remediation.md).
 - Metrics at `/actuator/metrics` (operator view, all tenants): `linfra.reconciler.orphans`, `.missing`, `.drifted`,
   `.duplicates`, `.stuck.intents`, `.oldest.unfinished.intent.seconds`, `.last.run.epoch.seconds`.
 
@@ -45,5 +45,4 @@ its job in one query and returns whether a live lease exists and since when a wo
 
 ## Classes
 
-`Reconciler` (snapshot, compare, record) · `InFlightIntentRepository` (intents joined with leases) · `InventoryComparer` (pure comparison; reused by the crash harness as its
-invariant checker) · `ReconcilerMetrics` · `ResourceFinder.listManaged()` (normalises provider data into catalog terms)
+`Reconciler` (snapshot, compare, record) · `InFlightIntentRepository` (intents joined with leases) · `InventoryComparer` (pure comparison) · `ReconcilerMetrics` · `ResourceFinder.listManaged()` (normalises provider data into catalog terms)

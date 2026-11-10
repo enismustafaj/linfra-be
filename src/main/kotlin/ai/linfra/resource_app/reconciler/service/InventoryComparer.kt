@@ -18,8 +18,7 @@ import java.time.Duration
 import java.time.Instant
 
 /**
- * Pure comparison of what the provider has against what Linfra recorded. No I/O, so it is unit-tested exhaustively
- * and reused by the crash harness as its invariant checker.
+ * Pure comparison of what the provider has against what Linfra recorded. No I/O, so it is unit-tested exhaustively.
  */
 @Component
 class InventoryComparer {
@@ -41,14 +40,14 @@ class InventoryComparer {
         return ReconciliationReport(
             checkedAt = now,
             seen = present.map { it.id },
-            missing = absent.map { MissingResource(it.id, it.tenantId, it.cloudId) },
+            missing = absent.map { MissingResource(it.id, it.tenantId, it.provider, it.cloudId) },
             drifted = present.mapNotNull { drift(it, observedById.getValue(it.cloudId), catalog) },
             orphans = observed
                 .filter { it.cloudId !in recordedIds && it.intentId !in inFlightIds }
-                .map { Orphan(it.cloudId, it.intentId, it.tenantId, if (it.intentId == null) "no intent_id label" else "no resource recorded and intent not in progress") },
+                .map { Orphan(it.provider, it.cloudId, it.intentId, it.tenantId, if (it.intentId == null) "no intent_id label" else "no resource recorded and intent not in progress") },
             duplicates = observed.filter { it.intentId != null }.groupBy { it.intentId!! }
                 .filterValues { it.size > 1 }
-                .map { (intentId, copies) -> Duplicate(intentId, copies.first().tenantId, copies.map { it.cloudId }.sorted()) },
+                .map { (intentId, copies) -> Duplicate(intentId, copies.first().tenantId, copies.first().provider, copies.map { it.cloudId }.sorted()) },
             stuck = inFlight
                 .filter { it.liveLeaseUntil == null && Duration.between(it.dueSince, now) > stuckAfter }
                 .map { StuckIntent(it.intentId, it.tenantId, it.state, Duration.between(it.dueSince, now).seconds) },
@@ -68,6 +67,6 @@ class InventoryComparer {
             check("memory_gb", entry?.memoryGb, actual.memoryGb)
             check("dedicated_cpu", entry?.let { it.cpuModel == CpuModel.DEDICATED }, actual.dedicatedCpu)
         }
-        return if (differences.isEmpty()) null else Drift(resource.id, resource.tenantId, resource.cloudId, differences)
+        return if (differences.isEmpty()) null else Drift(resource.id, resource.tenantId, resource.provider, resource.cloudId, differences)
     }
 }

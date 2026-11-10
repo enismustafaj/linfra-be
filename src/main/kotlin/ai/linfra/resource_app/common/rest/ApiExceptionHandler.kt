@@ -4,11 +4,14 @@ import ai.linfra.resource_app.conversation.exception.ConversationNotFoundExcepti
 import ai.linfra.resource_app.conversation.exception.DraftNotConfirmableException
 import ai.linfra.resource_app.conversation.exception.InvalidMessageException
 import ai.linfra.resource_app.intent.exception.IntentNotFoundException
+import ai.linfra.resource_app.remediation.exception.ActionNotAllowedException
+import ai.linfra.resource_app.remediation.exception.FindingNotFoundException
 import ai.linfra.resource_app.resource.exception.ResourceNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.ai.retry.NonTransientAiException
 import org.springframework.ai.retry.TransientAiException
 import org.springframework.http.HttpStatus
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -18,10 +21,10 @@ import org.springframework.web.client.RestClientException
 class ApiExceptionHandler {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    @ExceptionHandler(ConversationNotFoundException::class, IntentNotFoundException::class, ResourceNotFoundException::class)
+    @ExceptionHandler(ConversationNotFoundException::class, IntentNotFoundException::class, ResourceNotFoundException::class, FindingNotFoundException::class)
     fun notFound() = ResponseEntity.notFound().build<Unit>()
 
-    @ExceptionHandler(DraftNotConfirmableException::class)
+    @ExceptionHandler(DraftNotConfirmableException::class, ActionNotAllowedException::class, ObjectOptimisticLockingFailureException::class)
     fun conflict(e: RuntimeException) = error(HttpStatus.CONFLICT, e.message)
 
     @ExceptionHandler(InvalidMessageException::class)

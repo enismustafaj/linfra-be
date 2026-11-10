@@ -13,6 +13,8 @@ import ai.linfra.resource_app.outbox.persistence.RunRepository
 import ai.linfra.resource_app.outbox.service.OutboxStore
 import ai.linfra.resource_app.provider.model.ProvisionedResource
 import ai.linfra.resource_app.provider.service.DockerContainerFinder
+import ai.linfra.resource_app.provider.service.DockerContainerRemover
+import ai.linfra.resource_app.remediation.persistence.FindingRepository
 import ai.linfra.resource_app.provider.service.Provisioner
 import ai.linfra.resource_app.ranker.model.Provider
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
@@ -20,6 +22,8 @@ import ai.linfra.resource_app.tenant.persistence.Tenant
 import ai.linfra.resource_app.tenant.persistence.TenantRepository
 import ai.linfra.resource_app.tenant.security.hashApiKey
 import org.junit.jupiter.api.BeforeEach
+import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -50,12 +54,20 @@ abstract class IntegrationTest {
     @MockitoBean lateinit var provisioner: Provisioner
     @MockitoBean lateinit var agent: AgentClient
     @MockitoBean lateinit var finder: DockerContainerFinder
+    @MockitoBean lateinit var remover: DockerContainerRemover
+    @Autowired lateinit var findings: FindingRepository
 
     val lease: Duration = Duration.ofSeconds(30)
 
     @BeforeEach
+    fun stubProviders() {
+        whenever(finder.provider) doReturn Provider.DOCKER
+        whenever(remover.provider) doReturn Provider.DOCKER
+    }
+
+    @BeforeEach
     fun cleanDatabase() {
-        runs.deleteAll(); jobs.deleteAll(); resources.deleteAll(); intents.deleteAll(); messages.deleteAll(); conversations.deleteAll()
+        findings.deleteAll(); runs.deleteAll(); jobs.deleteAll(); resources.deleteAll(); intents.deleteAll(); messages.deleteAll(); conversations.deleteAll()
     }
 
     fun tenant(key: String = UUID.randomUUID().toString()): Tenant =

@@ -34,8 +34,9 @@ class Resource(
     @Column(name = "instance_type")
     val instanceType: String,
 
+    /** var: resolving a duplicate can repoint the record to the copy the user kept. */
     @Column(name = "cloud_id")
-    val cloudId: String,
+    var cloudId: String,
 
     @JdbcTypeCode(SqlTypes.JSON)
     val outputs: Map<String, Any?>,

@@ -14,7 +14,7 @@ What it guarantees:
   outbox with leases and fencing tokens, and every retry first checks whether the resource already exists.
 - **Every request ends in a known state**: succeeded, failed, expired, or flagged for a human.
 - **The provider is the source of truth.** A reconciler compares what actually exists with Linfra's records every
-  minute and reports drift, missing resources, orphans and duplicates.
+  minute and reports drift, missing resources, orphans and duplicates as findings a user resolves.
 - **Tenant isolation.** Each API key sees only its own conversations, intents and resources.
 - **No injection into infrastructure code.** Linfra never generates Terraform, only allow-listed variable values for
   checked-in modules.
@@ -37,7 +37,7 @@ flowchart LR
         auth[ApiKeyFilter<br/>tenant from API key]
         conv[Conversations]
         res[Resources]
-        recapi[Reconciliation]
+        findapi[Findings]
     end
 
     subgraph chat[Request to intent]
@@ -58,12 +58,13 @@ flowchart LR
         finder[DockerContainerFinder<br/>by intent_id label]
     end
 
-    recon[Reconciler<br/>report-only, every minute]
+    recon[Reconciler<br/>every minute]
+    remed[Remediation<br/>user resolves findings]
     planned[Planner + policy<br/>planned]
 
     db[(Postgres<br/>Linfra tables +<br/>OpenTofu state)]
 
-    client --> auth --> conv & res & recapi
+    client --> auth --> conv & res & findapi
     conv --> chatsvc --> agent --> llm
     chatsvc --> drafts --> ranker
     conv --> confirm
@@ -75,8 +76,11 @@ flowchart LR
     prov --> compiler --> tofu --> docker
     tofu -- state + lock per intent --> db
     recon -- list managed --> finder
-    recon -- compare, last_seen_at, MISSING --> db
-    res & recapi --> db
+    recon -- findings, last_seen_at, MISSING --> db
+    findapi --> remed
+    remed -- remove --> docker
+    remed -- resolution --> db
+    res --> db
 ```
 
 The LLM never reaches a cloud: everything after the draft is deterministic code. No external call (LLM, OpenTofu or
@@ -89,7 +93,8 @@ Docker) runs inside a database transaction.
 3. Approval (planner and policy are next) moves the intent to `APPROVED` and inserts its outbox job in one transaction.
 4. A worker thread claims the job with a lease and fencing token, records the run, calls `find()`, and only if nothing
    exists runs `tofu apply`.
-5. The resource row and `SUCCEEDED` commit together. The reconciler keeps checking the provider against the records.
+5. The resource row and `SUCCEEDED` commit together. The reconciler keeps checking the provider against the records
+   and opens findings; users resolve them with the actions each finding offers.
 
 ### Modules
 
@@ -103,7 +108,8 @@ Docker) runs inside a database transaction.
 | `outbox` | Durable job queue, worker thread pool, leases, fencing |
 | `provider` | `find()` by label and `apply()` through OpenTofu; Docker today |
 | `resource` | Resources Linfra created, one per succeeded intent |
-| `reconciler` | Compares the provider with Linfra's records every minute; report-only |
+| `reconciler` | Compares the provider with Linfra's records every minute and records findings |
+| `remediation` | Findings, the actions each offers, and running the action a user picks |
 | `common` | Mapping domain exceptions to HTTP statuses |
 
 Each module is split into `model`, `persistence`, `service`, `rest`, `exception` and `config` packages.
@@ -118,4 +124,5 @@ Each module is split into `model`, `persistence`, `service`, `rest`, `exception`
 | `outbox_jobs` | One job per approved intent: status, lease, fencing token, attempts |
 | `runs` | One row per claim, written before any cloud call |
 | `resources` | What was created: provider, region, instance type, cloud id, outputs, status |
+| `findings` | What the reconciler found, its status, and the action a user took |
 | `terraform_remote_state.states` | OpenTofu state, one workspace per intent (managed by OpenTofu, not Flyway) |

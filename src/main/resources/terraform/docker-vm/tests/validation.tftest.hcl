@@ -30,7 +30,7 @@ run "burstable_with_network_disk" {
     error_message = "burstable gets memory limit and CPU shares, no pinned cores"
   }
   assert {
-    condition     = length(docker_volume.disk) == 1 && docker_image.vm.platform == "linux/amd64"
+    condition     = length(docker_volume.disk) == 1 && docker_image.base.platform == "linux/amd64"
     error_message = "network disk volume and image platform expected"
   }
 }

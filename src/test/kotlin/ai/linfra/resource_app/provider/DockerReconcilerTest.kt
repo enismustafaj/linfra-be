@@ -11,6 +11,11 @@ import ai.linfra.resource_app.outbox.service.OutboxWorker
 import ai.linfra.resource_app.provider.service.Provisioner
 import ai.linfra.resource_app.ranker.RankerFixtures
 import ai.linfra.resource_app.reconciler.service.Reconciler
+import ai.linfra.resource_app.remediation.model.FindingStatus
+import ai.linfra.resource_app.remediation.model.FindingType
+import ai.linfra.resource_app.remediation.model.RemediationAction
+import ai.linfra.resource_app.remediation.persistence.FindingRepository
+import ai.linfra.resource_app.remediation.service.RemediationService
 import ai.linfra.resource_app.resource.model.ResourceStatus
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
 import ai.linfra.resource_app.tenant.persistence.Tenant
@@ -43,6 +48,8 @@ class DockerReconcilerTest {
     @Autowired lateinit var provisioner: Provisioner
     @Autowired lateinit var reconciler: Reconciler
     @Autowired lateinit var objectMapper: ObjectMapper
+    @Autowired lateinit var findings: FindingRepository
+    @Autowired lateinit var remediation: RemediationService
 
     private val created = mutableListOf<Claim>()
     private val orphanName = "linfra-orphan-${UUID.randomUUID()}"
@@ -89,5 +96,20 @@ class DockerReconcilerTest {
         assertEquals(ResourceStatus.MISSING, resources.findById(removed.id).get().status)
         assertTrue(report.orphans.any { it.reason.startsWith("no resource recorded") }, "${report.orphans}")
         assertTrue(report.duplicates.isEmpty())
+    }
+
+    @Test
+    fun `a user destroys a reported orphan and the next run finds nothing`() {
+        val tenant = tenants.save(Tenant(name = "t", apiKeyHash = UUID.randomUUID().toString()))
+        docker("run", "-d", "--name", orphanName, "--label", "managed_by=linfra", "--label", "intent_id=${UUID.randomUUID()}",
+            "--label", "tenant_id=${tenant.id}", "alpine:3.20", "sleep", "infinity")
+        reconciler.reconcile()
+        val orphan = findings.findAllByTenantIdAndStatusOrderByFirstSeenAtDesc(tenant.id, FindingStatus.OPEN).single { it.type == FindingType.ORPHAN }
+
+        remediation.resolve(tenant.id, orphan.id, RemediationAction.DESTROY, null)
+
+        val ps = ProcessBuilder("docker", "ps", "-aq", "--filter", "name=$orphanName").start()
+        assertEquals("", ps.inputStream.bufferedReader().readText().trim())
+        assertTrue(reconciler.reconcile().orphans.none { it.cloudId in orphan.cloudIds })
     }
 }

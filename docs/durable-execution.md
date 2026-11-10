@@ -82,5 +82,6 @@ A resource outlives its intent: it gets reconciled, can drift, and gets destroye
 
 ## Not proven yet
 
-No `kill -9` crash harness yet: the layers above are tested individually, not under real process kills. A killed
-worker's `tofu` child process can also outlive it; layers 4 and 5 are meant to cover that.
+The layers are tested individually (including adopting a crashed worker's container on real Docker), not under
+real process kills. A killed worker's `tofu` child process can outlive it; layers 4 and 5 are meant to cover that.
+Anything that slips through shows up as a [reconciliation](reconciliation.md) finding a user can resolve.

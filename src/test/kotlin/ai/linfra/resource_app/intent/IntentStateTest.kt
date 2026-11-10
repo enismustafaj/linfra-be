@@ -20,7 +20,15 @@ class IntentStateTest {
     @Test
     fun `cannot skip approval or leave a terminal state`() {
         assertFailsWith<IllegalStateException> { Intent(tenantId = UUID.randomUUID(), spec = mapOf()).moveTo(IntentState.APPLYING) }
-        IntentState.entries.filter { it in setOf(IntentState.SUCCEEDED, IntentState.FAILED, IntentState.REJECTED, IntentState.NEEDS_ATTENTION) }
+        IntentState.entries.filter { it in setOf(IntentState.SUCCEEDED, IntentState.FAILED, IntentState.REJECTED) }
             .forEach { terminal -> IntentState.entries.forEach { assert(!terminal.canMoveTo(it)) { "$terminal -> $it" } } }
+    }
+
+    @Test
+    fun `only a human decision leaves NEEDS_ATTENTION, to SUCCEEDED or FAILED`() {
+        assertEquals(
+            setOf(IntentState.SUCCEEDED, IntentState.FAILED),
+            IntentState.entries.filter { IntentState.NEEDS_ATTENTION.canMoveTo(it) }.toSet(),
+        )
     }
 }

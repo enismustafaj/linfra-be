@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.test.web.servlet.get
 import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -58,23 +57,5 @@ class ReconcilerTest : IntegrationTest() {
 
         assertEquals(1.0, meters.get("linfra.reconciler.orphans").gauge().value())
         assertEquals(1.0, meters.get("linfra.reconciler.missing").gauge().value())
-    }
-
-    @Test
-    fun `a tenant only sees findings about its own resources`() {
-        val keyA = "a-${UUID.randomUUID()}"
-        val keyB = "b-${UUID.randomUUID()}"
-        val missingOfA = resource(keyA)
-        resource(keyB)
-        whenever(finder.listManaged()) doReturn emptyList()
-
-        reconciler.reconcile()
-
-        mvc.get("/api/v1/reconciliation") { header("Authorization", "Bearer $keyA") }.andExpect {
-            status { isOk() }
-            jsonPath("$.missing.length()") { value(1) }
-            jsonPath("$.missing[0].resourceId") { value(missingOfA.id.toString()) }
-            jsonPath("$.seen.length()") { value(0) }
-        }
     }
 }

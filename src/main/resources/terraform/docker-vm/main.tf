@@ -8,7 +8,7 @@ locals {
   }
 }
 
-resource "docker_image" "vm" {
+resource "docker_image" "base" {
   name         = "alpine:3.20"
   platform     = "linux/${var.architecture}"
   keep_locally = true
@@ -32,7 +32,7 @@ resource "docker_volume" "disk" {
 # intent-derived name alone blocks a duplicate create.
 resource "docker_container" "vm" {
   name    = "linfra-${var.intent_id}"
-  image   = docker_image.vm.image_id
+  image   = docker_image.base.image_id
   command = ["sleep", "infinity"]
   restart = "unless-stopped"
   memory  = var.memory_mb

@@ -13,7 +13,9 @@ enum class IntentState {
             APPROVED to setOf(APPLYING, EXPIRED),
             APPLYING to setOf(SUCCEEDED, FAILED, NEEDS_ATTENTION),
             EXPIRED to setOf(PLANNED), // re-plan, then re-approve
-            // SUCCEEDED, REJECTED, FAILED, NEEDS_ATTENTION are terminal
+            // A human decides: adopt what exists (SUCCEEDED) or give up (FAILED). Only through a finding's action.
+            NEEDS_ATTENTION to setOf(SUCCEEDED, FAILED),
+            // SUCCEEDED, REJECTED and FAILED are terminal
         )
     }
 }

@@ -5,6 +5,7 @@ import ai.linfra.resource_app.ranker.model.Provider
 import ai.linfra.resource_app.ranker.service.PriceCatalog
 import ai.linfra.resource_app.reconciler.model.ReconciliationReport
 import ai.linfra.resource_app.reconciler.persistence.InFlightIntentRepository
+import ai.linfra.resource_app.remediation.service.FindingSync
 import ai.linfra.resource_app.resource.model.ResourceStatus
 import ai.linfra.resource_app.resource.persistence.ResourceRepository
 import org.slf4j.LoggerFactory
@@ -16,8 +17,8 @@ import java.time.Instant
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * Report-only: compares every provider against Linfra's records and reports what differs. The only writes are
- * last_seen_at and ACTIVE/MISSING. It never adopts (the worker's find() does that), deletes or reverts anything.
+ * Report-only: compares every provider against Linfra's records and records what differs as findings. The only other
+ * writes are last_seen_at and ACTIVE/MISSING. It never acts on the provider: users resolve findings (remediation).
  */
 @Service
 class Reconciler(
@@ -27,6 +28,7 @@ class Reconciler(
     private val catalog: PriceCatalog,
     private val comparer: InventoryComparer,
     private val tx: TransactionTemplate,
+    private val findingSync: FindingSync,
     @Value("\${linfra.reconciler.stuck-after}") private val stuckAfter: Duration,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -44,6 +46,7 @@ class Reconciler(
 
         val report = comparer.compare(observed, recorded, inFlight, ::catalogEntry, now, stuckAfter)
         record(report)
+        findingSync.sync(report)
         latest.set(report)
         logFindings(report)
         return report
