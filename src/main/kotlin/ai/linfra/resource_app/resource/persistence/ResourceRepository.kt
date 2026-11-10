@@ -1,14 +1,12 @@
 package ai.linfra.resource_app.resource.persistence
 
+import ai.linfra.resource_app.resource.model.ResourceStatus
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
 import java.util.UUID
 
-interface ResourceRepository: JpaRepository<ResourceEntity, UUID> {
-    
-    @Query("select r from ResourceEntity r where r.userId = :userId")
-    fun findByUserId(userId: String): List<ResourceEntity>
-
-    @Query("select r from ResourceEntity r where r.chatThreadId = :chatThreadId")
-    fun findByChatThreadId(chatThreadId: String): ResourceEntity
+interface ResourceRepository : JpaRepository<Resource, UUID> {
+    fun findByIntentId(intentId: UUID): Resource?
+    fun findByIdAndTenantId(id: UUID, tenantId: UUID): Resource?
+    fun findAllByTenantIdOrderByCreatedAtDesc(tenantId: UUID): List<Resource>
+    fun findAllByStatusIn(statuses: Collection<ResourceStatus>): List<Resource>
 }

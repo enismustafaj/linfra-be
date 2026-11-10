@@ -41,3 +41,7 @@ src/main/resources/resource-repository/
 src/main/resources/data.sql
 
 src/main/resources/firebase/
+.DS_Store
+
+# OpenTofu working files
+.terraform/

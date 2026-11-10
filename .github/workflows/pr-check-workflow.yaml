@@ -1,39 +1,40 @@
-name: Build and test application
+name: Build and test
 
 on:
   pull_request:
-    branches:
-      - main
-env:
-  RESOURCE_REPO_URL: https://github.com/enismustafaj/infra-resources.git
+    branches: [main]
+  push:
+    branches: [main]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'corretto'
+          cache: maven
+      # Tests run against Postgres in Testcontainers; no secrets needed.
+      - run: mvn -B verify
 
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v2
-
-        - name: Set up JDK 21
-          uses: actions/setup-java@v3
-          with:
-            java-version: '21'
-            distribution: 'corretto'
-
-        - name: Package with Maven
-          run: |-
-            mvn package
-          env:
-            AI_MODEL_API_KEY: ${{ secrets.AI_MODEL_API_KEY }}
-            AI_CLIENT_URL: ${{ secrets.AI_CLIENT_URL }}
-            RESOURCE_REPO_URL: ${{ env.RESOURCE_REPO_URL }}
-            RESOURCE_REPO_USERNAME: ${{ secrets.RESOURCE_REPO_USERNAME }}
-            RESOURCE_REPO_PASSWORD: ${{ secrets.RESOURCE_REPO_PASSWORD }}
-            SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-            KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-            JWKS: ${{ secrets.JWKS }}
-            INFRA_STATE_CLIENT_ID: ${{ secrets.INFRA_STATE_CLIENT_ID }}
-            INFRA_STATE_CLIENT_SECRET: ${{ secrets.INFRA_STATE_CLIENT_SECRET }}
-            FIREBASE_CREDENTIALS: ${{ secrets.FIREBASE_CREDENTIALS }}
-            TFBE_TOKEN: ${{ secrets.TFBE_TOKEN}}
+  terraform-modules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.13.9
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/linfra-tofu-plugins
+          key: tofu-plugins-${{ hashFiles('src/main/resources/terraform/**/versions.tf') }}
+      # fmt, validate and the modules' validation tests with mock providers; no cloud credentials needed.
+      - name: Test modules
+        run: |
+          export TF_PLUGIN_CACHE_DIR="$HOME/.cache/linfra-tofu-plugins" # tofu does not expand ~
+          mkdir -p "$TF_PLUGIN_CACHE_DIR"
+          for m in src/main/resources/terraform/*/; do
+            (cd "$m" && tofu fmt -check -recursive && tofu init -backend=false -input=false && tofu validate && tofu test)
+          done
