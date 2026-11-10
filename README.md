@@ -28,59 +28,68 @@ Spring Boot (Kotlin), Postgres, JPA, Flyway, OpenTofu. Spring AI talks to OpenAI
 simulated cloud where Docker containers stand in for VMs; real clouds plug into the same seams.
 
 ```mermaid
-flowchart LR
+flowchart TB
     client([Developer or agent])
-    llm[[OpenAI<br/>untrusted]]
-    docker[(Docker daemon)]
 
-    subgraph api[HTTP API]
-        auth[ApiKeyFilter<br/>tenant from API key]
+    subgraph api["HTTP API · API key → tenant"]
+        direction LR
         conv[Conversations]
         res[Resources]
         findapi[Findings]
     end
 
-    subgraph chat[Request to intent]
+    subgraph chat["1 · Request → intent"]
         chatsvc[ChatService]
         agent[AgentClient]
-        drafts[DraftBuilder<br/>validation]
+        drafts[DraftBuilder<br/>validates LLM output]
         ranker[Ranker<br/>catalog, total cost]
-        confirm[DraftConfirmationService]
+        confirm[DraftConfirmation]
     end
 
-    subgraph exec[Durable execution]
-        approve[Approval<br/>intent + outbox job, one tx]
-        pool[WorkerPool<br/>N threads]
-        worker[OutboxWorker<br/>lease + fencing]
-        prov[Provisioner<br/>find, then apply]
-        compiler[TerraformCompiler<br/>module + allow-listed tfvars]
-        tofu[TofuRunner<br/>OpenTofu]
-        finder[DockerContainerFinder<br/>by intent_id label]
+    subgraph exec["2 · Durable execution"]
+        approve[Approval<br/>planner + policy: planned]
+        pool[WorkerPool<br/>lease + fencing]
+        prov[Provisioner<br/>find, else apply]
+        tofu[TerraformCompiler<br/>+ TofuRunner]
     end
 
-    recon[Reconciler<br/>every minute]
-    remed[Remediation<br/>user resolves findings]
-    planned[Planner + policy<br/>planned]
+    subgraph reconcile["3 · Reconciliation"]
+        reconciler[Reconciler<br/>every minute]
+        remed[Remediation<br/>user picks an action]
+    end
 
-    db[(Postgres<br/>Linfra tables +<br/>OpenTofu state)]
+    subgraph pg["Postgres"]
+        direction LR
+        intents[(intents)]
+        outbox[(outbox_jobs)]
+        resources[(resources)]
+        findings[(findings)]
+        state[(OpenTofu state)]
+    end
 
-    client --> auth --> conv & res & findapi
+    llm[[OpenAI · untrusted]]
+    docker[(Docker daemon<br/>containers as VMs)]
+
+    client --> conv & res & findapi
+
     conv --> chatsvc --> agent --> llm
     chatsvc --> drafts --> ranker
-    conv --> confirm
-    confirm -- PROPOSED intent --> db
-    planned -.-> approve --> db
-    pool --> worker --> prov
-    worker -- claim, succeed, fail --> db
-    prov --> finder --> docker
-    prov --> compiler --> tofu --> docker
-    tofu -- state + lock per intent --> db
-    recon -- list managed --> finder
-    recon -- findings, last_seen_at, MISSING --> db
-    findapi --> remed
+    conv --> confirm -- PROPOSED --> intents
+
+    approve -- APPROVED + job, one tx --> intents & outbox
+    pool -- claim --> outbox
+    pool --> prov
+    prov -- find by intent_id --> docker
+    prov --> tofu -- apply --> docker
+    tofu -- state + lock --> state
+    pool -- succeed --> resources
+
+    reconciler -- list --> docker
+    reconciler -- compare --> resources
+    reconciler -- open / clear --> findings
+    findapi --> remed -- resolve --> findings
     remed -- remove --> docker
-    remed -- resolution --> db
-    res --> db
+    res --> resources
 ```
 
 The LLM never reaches a cloud: everything after the draft is deterministic code. No external call (LLM, OpenTofu or
