@@ -7,6 +7,7 @@ import ai.linfra.resource_app.intent.persistence.Intent
 import ai.linfra.resource_app.intent.persistence.IntentRepository
 import ai.linfra.resource_app.intent.service.IntentPlanner
 import ai.linfra.resource_app.intent.service.IntentService
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.support.TransactionTemplate
 import ai.linfra.resource_app.outbox.model.Claim
 import ai.linfra.resource_app.outbox.persistence.OutboxJobRepository
@@ -50,6 +51,7 @@ class DockerProvisioningTest {
     @Autowired lateinit var objectMapper: ObjectMapper
     @Autowired lateinit var planner: IntentPlanner
     @Autowired lateinit var tx: TransactionTemplate
+    @Autowired lateinit var jdbc: JdbcTemplate
 
     private val created = mutableListOf<Claim>()
 
@@ -63,6 +65,13 @@ class DockerProvisioningTest {
         return intent.also { created += Claim(0, it.id, it.tenantId, it.spec, 0, 0) }
     }
 
+    private fun docker(vararg args: String): String {
+        val p = ProcessBuilder("docker", *args).redirectErrorStream(true).start()
+        val out = p.inputStream.bufferedReader().readText()
+        check(p.waitFor(60, TimeUnit.SECONDS) && p.exitValue() == 0) { "docker ${args.first()} failed: $out" }
+        return out
+    }
+
     private fun containersFor(intentId: UUID): List<String> {
         val p = ProcessBuilder("docker", "ps", "-aq", "--no-trunc", "--filter", "label=intent_id=$intentId").start()
         return p.inputStream.bufferedReader().readText().lines().filter { it.isNotBlank() }.also { p.waitFor(30, TimeUnit.SECONDS) }
@@ -74,6 +83,29 @@ class DockerProvisioningTest {
         // What a destroy flow will do: otherwise the reconciler rightly reports these as MISSING.
         created.forEach { c -> resources.findByIntentId(c.intentId)?.let { it.status = ResourceStatus.DESTROYED; resources.save(it) } }
         created.forEach { assertEquals(emptyList(), containersFor(it.intentId), "container left behind for ${it.intentId}") }
+    }
+
+    @Test
+    fun `leftovers OpenTofu never saved are adopted into its state, so destroying the intent removes them`() {
+        val intent = approvedIntent()
+        // What a worker killed mid-apply leaves behind: a volume and a container that exist, and no saved state.
+        docker("volume", "create", "--label", "managed_by=linfra", "--label", "intent_id=${intent.id}", "linfra-${intent.id}")
+        val leftover = docker(
+            "run", "-d", "--name", "linfra-${intent.id}", "--label", "managed_by=linfra", "--label", "intent_id=${intent.id}",
+            "--mount", "source=linfra-${intent.id},target=/data", "alpine:3.20", "sleep", "infinity",
+        ).trim().lines().last() // the id; docker may print a platform warning first
+
+        worker.processNext("it")
+
+        assertEquals(IntentState.SUCCEEDED, intents.findById(intent.id).get().state)
+        assertEquals(leftover, resources.findByIntentId(intent.id)!!.cloudId)
+        val state = jdbc.queryForObject("select data from terraform_remote_state.states where name = ?", String::class.java, "intent-${intent.id}")!!
+        val inState = objectMapper.readTree(state)["resources"].map { it["type"].asText() + "." + it["name"].asText() }
+        assertEquals(setOf("docker_container.vm", "docker_volume.disk"), inState.toSet())
+
+        provisioner.destroy(created.single())
+        assertEquals(emptyList(), containersFor(intent.id))
+        assertEquals("", docker("volume", "ls", "-q", "--filter", "label=intent_id=${intent.id}").trim())
     }
 
     @Test

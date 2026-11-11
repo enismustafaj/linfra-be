@@ -1,6 +1,7 @@
 # Durable execution
 
 One approved intent creates at most one resource, and every intent ends in a named state, even if a worker dies mid-apply.
+For several instances, crashes and deployments, see [scaling-and-recovery.md](scaling-and-recovery.md).
 
 ## How "at most one" holds
 
@@ -48,7 +49,9 @@ No in-memory locking is involved.
 1. **Claim:** select due `PENDING` jobs, or `LEASED` jobs whose lease ran out, with `FOR UPDATE SKIP LOCKED`.
    In the same transaction: `fencing_token += 1`, the intent moves to `APPLYING`, and a `runs` row is written.
    The record exists before any cloud call.
-2. **Apply:** `find(intent) ?: apply(intent)`. `LeaseHeartbeat` extends the lease while the call runs.
+2. **Apply:** `find(intent) ?: apply(intent)`. If `find()` returns a resource, it's adopted: imported into the intent's
+   OpenTofu state if that save never happened ([opentofu.md](opentofu.md)). `LeaseHeartbeat` extends the lease while
+   the call runs.
 3. **Record:** `succeed` and `fail` lock the job row and check the fencing token. A worker whose lease was taken over
    gets `LostLeaseException` and changes nothing. `succeed` inserts the `resources` row and moves the intent to
    `SUCCEEDED` in one transaction.
@@ -74,6 +77,7 @@ A resource outlives its intent: it gets reconciled, can drift, and gets destroye
 | Worker dies after claiming | Lease expires; another worker claims with a higher token |
 | Worker dies mid-apply | The new worker waits on the state lock or adopts via `find()`; a duplicate create fails on the name |
 | Worker dies after apply, before recording | The new worker's `find()` adopts the container (tested on real Docker) |
+| Worker dies before OpenTofu saved state | The new worker adopts the container and imports it and its volume into state, so a later destroy removes them (tested on real Docker) |
 | Apply throws | Retry with exponential backoff (5 min cap); after `max-attempts` → `NEEDS_ATTENTION` |
 | Approval expired before start | Intent → `EXPIRED`, nothing applied |
 | Plan changed since approval (module, catalog or values) | The worker's hash check fails before apply: intent → `EXPIRED`, re-plan |

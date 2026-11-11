@@ -151,7 +151,7 @@ flowchart TB
     conv --> chatsvc --> agent --> llm
     chatsvc --> drafts --> ranker
     conv --> confirm --> planner
-    intapi -- plan / approve / reject --> planner
+    intapi -- approve / reject --> planner
     planner --> policy
     policy -- reads --> policies
     polapi -- edit --> policies
@@ -175,12 +175,18 @@ flowchart TB
 The LLM never reaches a cloud: everything after the draft is deterministic code. No external call (LLM, OpenTofu or
 Docker) runs inside a database transaction.
 
+Instances are stateless and coordinate only through Postgres: see
+[scaling-and-recovery.md](docs/scaling-and-recovery.md) for running several of them, crashes and deployments, and
+[plan-hash.md](docs/plan-hash.md) for how an approval is bound to the exact code that gets applied, and
+[opentofu.md](docs/opentofu.md) for how OpenTofu runs and keeps its state and locks in Postgres.
+
 ### Request flow
 
 1. A user chats; the LLM turns the request into typed requirements. Invalid output never becomes a draft.
 2. The ranker picks the instance type from the catalog; the user confirms the draft, which creates an intent.
 3. In the same transaction, the planner hashes the compiled workspace and the tenant's policy decides: approved (with
-   its outbox job), waiting for a human to approve on the Intents page, or rejected.
+   its outbox job), waiting for a human, or rejected. On the Intents page one click approves a waiting intent (or
+   plans and decides one that hasn't been yet); hard rules still win.
 4. A worker thread claims the job with a lease and fencing token, records the run, calls `find()`, and only if nothing
    exists runs `tofu apply`, after checking that the workspace still hashes to the approved plan.
 5. The resource row and `SUCCEEDED` commit together. The reconciler keeps checking the provider against the records

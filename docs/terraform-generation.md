@@ -2,7 +2,7 @@
 
 Each resource type is a normal OpenTofu module checked into `src/main/resources/terraform/<module>`. Per intent,
 Linfra generates only one file, `terraform.tfvars.json`, with the module's input values. Linfra never generates
-Terraform code.
+Terraform code. How OpenTofu then runs it, and how its state and locks live in Postgres: [opentofu.md](opentofu.md).
 
 | Module | Resource |
 |---|---|

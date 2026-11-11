@@ -43,7 +43,7 @@ class IntentService(
         return intent
     }
 
-    /** A human approves an intent the policy left waiting. The hard rules are checked again: spend may have changed. */
+    /** A human approves a planned intent the policy left waiting. The hard rules are checked again: spend may have changed. */
     @Transactional
     fun approveByHuman(tenantId: UUID, intentId: UUID): Intent {
         val intent = waitingForApproval(tenantId, intentId)
@@ -61,12 +61,17 @@ class IntentService(
         return intent
     }
 
+    /** A human turns down an intent that is waiting for a decision, planned or not. */
     @Transactional
-    fun rejectByHuman(tenantId: UUID, intentId: UUID): Intent =
-        waitingForApproval(tenantId, intentId).apply {
-            moveTo(IntentState.REJECTED)
-            decisionReason = "rejected by a human"
+    fun rejectByHuman(tenantId: UUID, intentId: UUID): Intent {
+        val intent = intents.findByIdAndTenantId(intentId, tenantId) ?: throw IntentNotFoundException(intentId)
+        if (intent.state != IntentState.PLANNED && intent.state != IntentState.PROPOSED) {
+            throw IntentNotActionableException("intent is ${intent.state}; only proposed or planned intents can be rejected")
         }
+        intent.moveTo(IntentState.REJECTED)
+        intent.decisionReason = "rejected by a human"
+        return intent
+    }
 
     private fun waitingForApproval(tenantId: UUID, intentId: UUID): Intent {
         val intent = intents.findByIdAndTenantId(intentId, tenantId) ?: throw IntentNotFoundException(intentId)

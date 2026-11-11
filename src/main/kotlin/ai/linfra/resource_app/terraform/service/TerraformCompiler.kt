@@ -2,6 +2,7 @@ package ai.linfra.resource_app.terraform.service
 
 import ai.linfra.resource_app.conversation.model.Draft
 import ai.linfra.resource_app.intent.persistence.Intent
+import ai.linfra.resource_app.provider.model.ProvisionedResource
 import ai.linfra.resource_app.ranker.service.PriceCatalog
 import ai.linfra.resource_app.terraform.exception.NotInAllowListException
 import ai.linfra.resource_app.terraform.model.CompiledWorkspace
@@ -46,6 +47,10 @@ class TerraformCompiler(
 
         return VmTarget(intentId, tenantId, entry, draft.pick.diskGb)
     }
+
+    /** Import arguments for adopting [found] into the intent's state. */
+    fun imports(target: VmTarget, found: ProvisionedResource): Map<String, String> =
+        (vmModules[target.entry.provider] ?: throw NotInAllowListException("no module for ${target.entry.provider}")).imports(target, found)
 
     fun compile(target: VmTarget): CompiledWorkspace {
         val vmModule = vmModules[target.entry.provider] ?: throw NotInAllowListException("no module for ${target.entry.provider}")

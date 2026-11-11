@@ -1,6 +1,8 @@
 package ai.linfra.resource_app.intent.service
 
 import ai.linfra.resource_app.intent.exception.IntentNotActionableException
+import ai.linfra.resource_app.intent.exception.IntentNotFoundException
+import ai.linfra.resource_app.intent.persistence.IntentRepository
 import ai.linfra.resource_app.intent.model.IntentState
 import ai.linfra.resource_app.intent.persistence.Intent
 import ai.linfra.resource_app.policy.model.PolicyDecision
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
+import java.util.UUID
 
 /**
  * Plan, then policy: PROPOSED (or EXPIRED) → PLANNED with a plan hash, then auto-approved (APPROVED + outbox job),
@@ -24,8 +27,24 @@ class IntentPlanner(
     private val policy: PolicyService,
     private val intentService: IntentService,
     private val tenants: TenantRepository,
+    private val intents: IntentRepository,
     @Value("\${linfra.policy.approval-ttl}") private val approvalTtl: Duration,
 ) {
+    /**
+     * A user approves an intent from the UI, whatever stage it's at, in one step. Not planned yet: it's planned and the
+     * policy decides first, so within policy it's auto-approved and a hard-rule breach is rejected. Still waiting
+     * after that (above the auto-approve limit, or production): the user's click is the human approval.
+     */
+    @Transactional
+    fun approve(tenantId: UUID, intentId: UUID): Intent {
+        val intent = intents.findByIdAndTenantId(intentId, tenantId) ?: throw IntentNotFoundException(intentId)
+        if (intent.state == IntentState.PROPOSED || intent.state == IntentState.EXPIRED) {
+            planAndDecide(intent)
+            if (intent.state != IntentState.PLANNED) return intent
+        }
+        return intentService.approveByHuman(tenantId, intentId)
+    }
+
     @Transactional
     fun planAndDecide(intent: Intent): Intent {
         if (intent.state != IntentState.PROPOSED && intent.state != IntentState.EXPIRED) {

@@ -20,7 +20,7 @@ so accepting "memory 4 GB → 8 GB" doesn't hide a later "→ 16 GB".
 
 | Finding | Actions |
 |---|---|
-| Orphan | `DESTROY` remove the container · `ADOPT` record it as the resource of its intent (only when that intent is `NEEDS_ATTENTION`) · `DISMISS` |
+| Orphan | `DESTROY` remove the container · `ADOPT` record it as the resource of its intent and import it into OpenTofu's state (only when that intent is `NEEDS_ATTENTION`) · `DISMISS` |
 | Duplicate | `KEEP` with a `cloudId`: keep that copy, remove the others, point the record at it |
 | Missing | `MARK_DESTROYED` accept it's gone · `DISMISS` |
 | Drift | `ACCEPT` the change was intended |

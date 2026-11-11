@@ -6,6 +6,7 @@ import ai.linfra.resource_app.provider.model.ProvisionedResource
 import ai.linfra.resource_app.terraform.service.TerraformCompiler
 import ai.linfra.resource_app.terraform.service.TofuRunner
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 /** What the worker calls: find() asks the provider directly, apply() compiles the intent and runs OpenTofu. */
 @Service
@@ -40,6 +41,19 @@ class Provisioner(
             outputs = mapOf("ipv4" to outputs["ipv4"]),
         )
     }
+
+    /**
+     * Brings a resource [find] returned into the intent's OpenTofu state, if it isn't there yet. Needed when a worker
+     * died after the provider created the resource but before OpenTofu saved state: without it, the resource would be
+     * recorded by Linfra but unknown to OpenTofu, and a later destroy would leave it behind.
+     */
+    fun adopt(intentId: UUID, tenantId: UUID, spec: Map<String, Any?>, found: ProvisionedResource, runId: String): List<String> {
+        val target = compiler.target(intentId, tenantId, spec)
+        return tofu.importMissing(compiler.compile(target), "intent-$intentId", runId, compiler.imports(target, found))
+    }
+
+    fun adopt(claim: Claim, found: ProvisionedResource): List<String> =
+        adopt(claim.intentId, claim.tenantId, claim.spec, found, runId = "${claim.intentId}-${claim.fencingToken}")
 
     fun destroy(claim: Claim) {
         val target = compiler.target(claim.intentId, claim.tenantId, claim.spec)

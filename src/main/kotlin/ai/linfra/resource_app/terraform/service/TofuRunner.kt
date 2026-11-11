@@ -28,13 +28,24 @@ class TofuRunner(
     /** [runId] must be unique per attempt (intent + fencing token) so a stale worker never shares a directory. */
     fun apply(workspace: CompiledWorkspace, stateName: String, runId: String): Map<String, Any?> =
         inWorkspace(workspace, stateName, runId) { dir ->
-            tofu(dir, "apply", "-auto-approve")
+            tofu(dir, "apply", "-auto-approve", "-no-color")
             outputs(dir)
         }
 
     fun destroy(workspace: CompiledWorkspace, stateName: String, runId: String) {
-        inWorkspace(workspace, stateName, runId) { dir -> tofu(dir, "destroy", "-auto-approve") }
+        inWorkspace(workspace, stateName, runId) { dir -> tofu(dir, "destroy", "-auto-approve", "-no-color") }
     }
+
+    /**
+     * Brings resources that exist but aren't in the intent's state (e.g. a worker died after the provider created them
+     * but before OpenTofu saved state) into the state, so a later destroy removes them. State-only: nothing is applied,
+     * because an apply right after an import would replace the adopted resources. Returns the addresses imported.
+     */
+    fun importMissing(workspace: CompiledWorkspace, stateName: String, runId: String, imports: Map<String, String>): List<String> =
+        inWorkspace(workspace, stateName, runId) { dir ->
+            val present = tofu(dir, "state", "list", "-no-color").lines().map { it.trim() }.toSet()
+            imports.filterKeys { it !in present }.onEach { (address, id) -> tofu(dir, "import", "-no-color", address, id) }.keys.toList()
+        }
 
     private fun <T> inWorkspace(workspace: CompiledWorkspace, stateName: String, runId: String, block: (File) -> T): T {
         val dir = File(workDir, runId).apply { deleteRecursively(); mkdirs() }
@@ -43,7 +54,7 @@ class TofuRunner(
             File(dir, TFVARS_FILE).writeText(workspace.tfvarsJson)
             // ponytail: init serialised per process because the pg backend's first-run schema creation races;
             // across processes it only matters on the very first run against an empty database
-            synchronized(initLock) { tofu(dir, "init") }
+            synchronized(initLock) { tofu(dir, "init", "-no-color") }
             tofu(dir, "workspace", "select", "-or-create=true", stateName)
             return block(dir)
         } finally {
@@ -53,14 +64,13 @@ class TofuRunner(
 
     @Suppress("UNCHECKED_CAST")
     private fun outputs(dir: File): Map<String, Any?> =
-        (objectMapper.readValue(tofu(dir, "output", "-json"), Map::class.java) as Map<String, Map<String, Any?>>)
+        (objectMapper.readValue(tofu(dir, "output", "-json", "-no-color"), Map::class.java) as Map<String, Map<String, Any?>>)
             .mapValues { it.value["value"] }
 
     private fun tofu(dir: File, vararg args: String): String {
         pluginCacheDir.mkdirs()
-        // "workspace" subcommands don't take -no-color
-        val command = listOf("tofu", *args) + if (args[0] == "workspace") emptyList() else listOf("-no-color")
-        val process = ProcessBuilder(command)
+        // Callers pass their own flags: they must come before positional arguments (e.g. `import -no-color <addr> <id>`).
+        val process = ProcessBuilder(listOf("tofu", *args))
             .directory(dir)
             .redirectErrorStream(true)
             .apply {

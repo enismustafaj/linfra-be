@@ -11,6 +11,7 @@ import ai.linfra.resource_app.remediation.service.RemediationOptions
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,6 +53,7 @@ class OrphanRemediationTest : RemediationTest() {
 
         assertEquals("c-1", resources.findByIntentId(intent.id)!!.cloudId)
         assertEquals(IntentState.SUCCEEDED, state(intent.id))
+        verify(provisioner).adopt(eq(intent.id), any(), any(), any(), any())
     }
 
     @Test

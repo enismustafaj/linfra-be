@@ -2,6 +2,7 @@ package ai.linfra.resource_app.outbox
 
 import ai.linfra.resource_app.IntegrationTest
 import ai.linfra.resource_app.intent.model.IntentState
+import ai.linfra.resource_app.outbox.model.Claim
 import ai.linfra.resource_app.outbox.model.JobStatus
 import ai.linfra.resource_app.outbox.service.OutboxWorker
 import ai.linfra.resource_app.resource.model.ResourceStatus
@@ -52,6 +53,7 @@ class OutboxWorkerTest : IntegrationTest() {
         worker.processNext("w")
 
         verify(provisioner, never()).apply(any())
+        verify(provisioner).adopt(any<Claim>(), any()) // brought into OpenTofu's state too
         assertEquals("srv-from-dead-worker", resources.findByIntentId(intent.id)!!.cloudId)
     }
 

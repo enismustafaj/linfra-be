@@ -5,6 +5,7 @@ import ai.linfra.resource_app.intent.persistence.IntentRepository
 import ai.linfra.resource_app.outbox.model.JobStatus
 import ai.linfra.resource_app.outbox.persistence.OutboxJobRepository
 import ai.linfra.resource_app.provider.model.ProvisionedResource
+import ai.linfra.resource_app.provider.service.Provisioner
 import ai.linfra.resource_app.provider.service.ResourceFinder
 import ai.linfra.resource_app.provider.service.ResourceRemover
 import ai.linfra.resource_app.remediation.exception.ActionNotAllowedException
@@ -45,6 +46,7 @@ class RemediationService(
     private val resources: ResourceRepository,
     private val jobs: OutboxJobRepository,
     private val compiler: TerraformCompiler,
+    private val provisioner: Provisioner,
     private val finders: List<ResourceFinder>,
     private val removers: List<ResourceRemover>,
     private val tx: TransactionTemplate,
@@ -81,7 +83,11 @@ class RemediationService(
         ADOPT -> {
             val intent = intents.findById(f.intentId!!).orElseThrow()
             val target = compiler.target(intent.id, intent.tenantId, intent.spec)
-            finders.firstOrNull { it.provider == target.entry.provider }?.find(target) ?: throw ActionNotAllowedException("the resource no longer exists")
+            val found = finders.firstOrNull { it.provider == target.entry.provider }?.find(target)
+                ?: throw ActionNotAllowedException("the resource no longer exists")
+            // Also into OpenTofu's state, so destroying the intent later removes it.
+            provisioner.adopt(intent.id, intent.tenantId, intent.spec, found, runId = "${intent.id}-adopt-${f.id}")
+            found
         }
         else -> null
     }

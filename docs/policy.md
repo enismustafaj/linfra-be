@@ -14,6 +14,10 @@ confirm draft ──▶ PROPOSED ──plan──▶ PLANNED ──policy──�
 
 Confirming a draft, planning, the policy decision and (if approved) the outbox job commit in **one transaction**.
 
+**Approving is one step.** Approve works on any intent still waiting for a decision. One that isn't planned yet
+(`PROPOSED`, or `EXPIRED` and needing a new plan) is planned and checked first: within policy it's auto-approved, a
+hard-rule breach is rejected, and otherwise the click itself is the human approval. All in one transaction.
+
 ## Plan
 
 `IntentPlanner` compiles the intent (module plus allow-listed tfvars) and stores the workspace's SHA-256 as
@@ -44,14 +48,13 @@ An approval is valid for `approval-ttl` (1 hour): if no worker started by then, 
 |---|---|---|
 | `GET` | `/api/v1/policy` | The tenant's effective policy, committed spend, and the catalog's types and regions |
 | `PUT` | `/api/v1/policy` | Save it. Types and regions must exist in the catalog; budget > 0; auto-approve limit between 0 and the budget |
-| `POST` | `/api/v1/intents/{id}/plan` | `PROPOSED` or `EXPIRED` intents |
-| `POST` | `/api/v1/intents/{id}/approve` | intents waiting for a human |
-| `POST` | `/api/v1/intents/{id}/reject` | intents waiting for a human |
+| `POST` | `/api/v1/intents/{id}/approve` | `PROPOSED`, `PLANNED` or `EXPIRED` intents: plans first if needed, then auto-approves within policy or records the human approval |
+| `POST` | `/api/v1/intents/{id}/reject` | `PROPOSED` or `PLANNED` intents |
 
 `decisionReason` on each intent says why it was rejected, why it waits, or who approved it.
 
 In the web UI, the **Policy** page edits the policy (with committed spend against the budget), and the **Intents**
-page has Plan, Approve and Reject buttons. A saved policy applies to decisions made from then on; intents already
+page has Approve and Reject buttons. A saved policy applies to decisions made from then on; intents already
 waiting are checked against it when approved.
 
 ## Limitations
@@ -62,5 +65,5 @@ waiting are checked against it when approved.
 
 ## Classes
 
-`IntentPlanner` (plan and decide) · `PolicyService` (policy, committed spend) · `PolicyEvaluator` (pure rules) ·
+`IntentPlanner` (plan and decide; one-step approve) · `PolicyService` (policy, committed spend) · `PolicyEvaluator` (pure rules) ·
 `IntentService` (approve, human approve/reject)

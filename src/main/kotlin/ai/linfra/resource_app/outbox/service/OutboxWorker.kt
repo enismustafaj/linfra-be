@@ -25,7 +25,8 @@ class OutboxWorker(
         heartbeat.start(claim).use {
             try {
                 // Never apply without checking first: a previous attempt may have created the resource and died.
-                val provisioned = provisioner.find(claim) ?: provisioner.apply(claim)
+                // If it did, adopt it, which also brings it into OpenTofu's state if that save never happened.
+                val provisioned = provisioner.find(claim)?.also { provisioner.adopt(claim, it) } ?: provisioner.apply(claim)
                 store.succeed(claim, provisioned)
             } catch (e: PlanChangedException) {
                 log.warn(e.message)
