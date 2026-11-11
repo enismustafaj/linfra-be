@@ -19,8 +19,12 @@ What it guarantees:
 - **No injection into infrastructure code.** Linfra never generates Terraform, only allow-listed variable values for
   checked-in modules.
 
+- **Policy before anything runs.** Each request is checked against its tenant's allowed types, regions and monthly
+  budget: within limits it's approved automatically, above them a human approves, and approval is bound to the exact
+  plan that will be applied.
+
 It's a sandbox project: VMs are Docker containers on a local, simulated cloud, so everything runs without a cloud
-account. Planning with policy-based approval is next. Feature documentation lives in [docs/](docs/).
+account. Feature documentation lives in [docs/](docs/).
 
 ## Architecture
 
@@ -47,7 +51,7 @@ flowchart TB
     end
 
     subgraph exec["2 · Durable execution"]
-        approve[Approval<br/>planner + policy: planned]
+        approve[Planner + policy<br/>auto-approve or wait for a human]
         pool[WorkerPool<br/>lease + fencing]
         prov[Provisioner<br/>find, else apply]
         tofu[TerraformCompiler<br/>+ TofuRunner]
@@ -99,7 +103,8 @@ Docker) runs inside a database transaction.
 
 1. A user chats; the LLM turns the request into typed requirements. Invalid output never becomes a draft.
 2. The ranker picks the instance type from the catalog; the user confirms the draft, which creates a `PROPOSED` intent.
-3. Approval (planner and policy are next) moves the intent to `APPROVED` and inserts its outbox job in one transaction.
+3. In the same transaction, the planner hashes the compiled workspace and the policy decides: approved (with its
+   outbox job), waiting for a human, or rejected.
 4. A worker thread claims the job with a lease and fencing token, records the run, calls `find()`, and only if nothing
    exists runs `tofu apply`.
 5. The resource row and `SUCCEEDED` commit together. The reconciler keeps checking the provider against the records
@@ -112,7 +117,8 @@ Docker) runs inside a database transaction.
 | `tenant` | API key authentication; the tenant on every request |
 | `conversation` | Chat with the LLM, drafts, draft confirmation |
 | `ranker` | Deterministic instance type choice from the catalog |
-| `intent` | Intent state machine and approval |
+| `intent` | Intent state machine, planning, approval |
+| `policy` | Per-tenant rules: allowed types and regions, budget, when a human must approve |
 | `terraform` | Intent → checked-in module plus allow-listed `terraform.tfvars.json`; runs OpenTofu |
 | `outbox` | Durable job queue, worker thread pool, leases, fencing |
 | `provider` | `find()` by label and `apply()` through OpenTofu; Docker today |
@@ -129,7 +135,8 @@ Each module is split into `model`, `persistence`, `service`, `rest`, `exception`
 |---|---|
 | `tenants` | Tenant and the SHA-256 hash of its API key |
 | `conversations`, `messages` | Chat history; assistant messages carry the draft |
-| `intents` | One request for one resource: state, spec, plan hash, approval, link to the confirmed draft |
+| `intents` | One request for one resource: state, spec, plan hash, approval and its reason, link to the confirmed draft |
+| `policies` | Per-tenant policy; tenants without a row get the configured defaults |
 | `outbox_jobs` | One job per approved intent: status, lease, fencing token, attempts |
 | `runs` | One row per claim, written before any cloud call |
 | `resources` | What was created: provider, region, instance type, cloud id, outputs, status |

@@ -59,7 +59,7 @@ class OutboxStore(
         job.attempts += 1
         runs.save(Run(intentId = intent.id, jobId = jobId, fencingToken = job.fencingToken, workerId = workerId, startedAt = now))
 
-        return Claim(jobId, intent.id, intent.tenantId, intent.spec, job.fencingToken, job.attempts)
+        return Claim(jobId, intent.id, intent.tenantId, intent.spec, job.fencingToken, job.attempts, intent.planHash)
     }
 
     /** Returns false once another worker has taken the job over. */
@@ -118,6 +118,21 @@ class OutboxStore(
             job.availableAt = Instant.now().plusSeconds(minOf(300L, 1L shl job.attempts))
             finishRun(claim, "RETRY")
         }
+    }
+
+    /** The plan changed since approval and nothing was applied: re-plan and re-approve. */
+    @Transactional
+    fun expire(claim: Claim, reason: String) {
+        val job = lockIfStillOwned(claim) ?: throw LostLeaseException(claim)
+        job.status = JobStatus.DONE
+        job.lastError = reason
+        job.leaseOwner = null
+        job.leaseUntil = null
+        intents.findById(claim.intentId).orElseThrow().apply {
+            moveTo(IntentState.EXPIRED)
+            decisionReason = reason
+        }
+        finishRun(claim, "EXPIRED")
     }
 
     // The row lock serialises us against a concurrent claim; the token check rejects a worker that was replaced.

@@ -21,14 +21,10 @@ class ChatService(
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    /**
-     * Not @Transactional on purpose: the user message commits, then the LLM is called with no transaction open
-     * (a hung LLM holds no DB connection), then the reply commits. A crash in between loses only the reply,
-     * and LLM calls have no side effects, so the user can simply resend.
-     */
     fun send(tenantId: UUID, conversationId: UUID, text: String): Message {
         if (text.isBlank() || text.length > MAX_MESSAGE_CHARS) throw InvalidMessageException("text must be 1..$MAX_MESSAGE_CHARS characters")
-        conversations.requireOwned(tenantId, conversationId)
+        val conversation = conversations.requireOwned(tenantId, conversationId)
+        conversations.titleIfMissing(conversation, text)
         messages.save(Message(conversationId = conversationId, role = MessageRole.USER, content = text))
 
         val agentReply = try {

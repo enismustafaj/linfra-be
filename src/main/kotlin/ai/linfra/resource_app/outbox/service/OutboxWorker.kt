@@ -1,6 +1,7 @@
 package ai.linfra.resource_app.outbox.service
 
 import ai.linfra.resource_app.outbox.exception.LostLeaseException
+import ai.linfra.resource_app.provider.exception.PlanChangedException
 import ai.linfra.resource_app.provider.service.Provisioner
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -26,6 +27,9 @@ class OutboxWorker(
                 // Never apply without checking first: a previous attempt may have created the resource and died.
                 val provisioned = provisioner.find(claim) ?: provisioner.apply(claim)
                 store.succeed(claim, provisioned)
+            } catch (e: PlanChangedException) {
+                log.warn(e.message)
+                runCatching { store.expire(claim, e.message!!) }
             } catch (e: LostLeaseException) {
                 log.warn(e.message) // the new lease holder owns the outcome now
             } catch (e: Exception) {

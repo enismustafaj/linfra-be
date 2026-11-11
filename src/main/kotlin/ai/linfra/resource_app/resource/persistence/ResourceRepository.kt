@@ -9,4 +9,5 @@ interface ResourceRepository : JpaRepository<Resource, UUID> {
     fun findByIdAndTenantId(id: UUID, tenantId: UUID): Resource?
     fun findAllByTenantIdOrderByCreatedAtDesc(tenantId: UUID): List<Resource>
     fun findAllByStatusIn(statuses: Collection<ResourceStatus>): List<Resource>
+    fun findAllByTenantIdAndStatusIn(tenantId: UUID, statuses: Collection<ResourceStatus>): List<Resource>
 }

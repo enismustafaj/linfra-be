@@ -23,6 +23,7 @@ spring:
       max-attempts: 2 # Spring AI defaults to 10 with backoff: minutes of a request hanging
     openai:
       api-key: ${OPENAI_API_KEY:unset}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com} # any OpenAI-compatible API, e.g. https://openrouter.ai/api
       chat:
         options:
           model: ${OPENAI_MODEL:gpt-4.1-mini}
@@ -48,6 +49,11 @@ linfra:
     poll-interval: PT1S
     lease: PT30S
     max-attempts: 5
+  policy: # defaults for tenants without a policies row
+    monthly-budget-eur: 200
+    auto-approve-max-eur: 50
+    require-approval-for-prod: true
+    approval-ttl: PT1H
   reconciler:
     enabled: ${LINFRA_RECONCILER_ENABLED:true}
     interval: PT1M

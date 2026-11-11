@@ -7,9 +7,10 @@ the user confirms. Only a confirmed draft becomes an intent.
 
 | Method | Path | Result |
 |---|---|---|
+| `GET` | `/api/v1/conversations` | The tenant's conversations, newest first, titled by their first message |
 | `POST` | `/api/v1/conversations` | `{id}` |
 | `POST` | `/api/v1/conversations/{id}/messages` `{"text": "..."}` | The assistant's reply, with `draft` if it proposed one |
-| `POST` | `/api/v1/conversations/{id}/drafts/{messageId}/confirm` | The `PROPOSED` intent |
+| `POST` | `/api/v1/conversations/{id}/drafts/{messageId}/confirm` | The intent, already planned and decided by [policy](policy.md) |
 | `GET` | `/api/v1/conversations/{id}` | Messages plus linked intents and their states |
 
 ## The LLM is untrusted
@@ -35,3 +36,10 @@ the user confirms. Only a confirmed draft becomes an intent.
 
 `ConversationService` (create, own, read) · `ChatService` (one exchange) · `DraftBuilder` (LLM reply → draft) ·
 `DraftConfirmationService` (draft → intent) · `AgentClient` (the only LLM caller) · `AgentPrompts`
+
+## Configuration
+
+`OPENAI_API_KEY`, `OPENAI_MODEL` (default `gpt-4.1-mini`) and `OPENAI_BASE_URL` (default OpenAI). Any
+OpenAI-compatible API with structured outputs works, e.g. OpenRouter: `OPENAI_BASE_URL=https://openrouter.ai/api`,
+`OPENAI_MODEL=openai/gpt-4.1-mini`.
+

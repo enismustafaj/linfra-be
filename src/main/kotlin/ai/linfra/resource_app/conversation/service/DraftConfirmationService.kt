@@ -4,6 +4,7 @@ import ai.linfra.resource_app.conversation.exception.DraftNotConfirmableExceptio
 import ai.linfra.resource_app.conversation.persistence.MessageRepository
 import ai.linfra.resource_app.intent.persistence.Intent
 import ai.linfra.resource_app.intent.persistence.IntentRepository
+import ai.linfra.resource_app.intent.service.IntentPlanner
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.convertValue
 import org.springframework.dao.DataIntegrityViolationException
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.support.TransactionTemplate
 import java.util.UUID
 
-/** Turns the latest confirmed draft into a PROPOSED intent. Idempotent: one draft yields at most one intent. */
+/** Turns the latest confirmed draft into an intent and plans it. Idempotent: one draft yields at most one intent. */
 @Service
 class DraftConfirmationService(
     private val conversations: ConversationService,
@@ -19,6 +20,7 @@ class DraftConfirmationService(
     private val intents: IntentRepository,
     private val objectMapper: ObjectMapper,
     private val tx: TransactionTemplate,
+    private val planner: IntentPlanner,
 ) {
     fun confirm(tenantId: UUID, conversationId: UUID, messageId: Long): Intent =
         try {
@@ -34,7 +36,7 @@ class DraftConfirmationService(
         if (latest?.id != messageId) throw DraftNotConfirmableException("message $messageId is not the latest draft in this conversation")
         intents.findBySourceMessageId(messageId)?.let { return it }
 
-        return intents.save(
+        val intent = intents.save(
             Intent(
                 tenantId = tenantId,
                 spec = objectMapper.convertValue(latest.draft!!),
@@ -42,5 +44,7 @@ class DraftConfirmationService(
                 sourceMessageId = messageId,
             )
         )
+        // Same transaction: the intent, its plan, the policy decision and (if approved) the outbox job land together.
+        return planner.planAndDecide(intent)
     }
 }

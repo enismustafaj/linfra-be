@@ -1,11 +1,16 @@
 package ai.linfra.resource_app.intent.service
 
+import ai.linfra.resource_app.intent.exception.IntentNotActionableException
 import ai.linfra.resource_app.intent.exception.IntentNotFoundException
 import ai.linfra.resource_app.intent.model.IntentState
 import ai.linfra.resource_app.intent.persistence.Intent
 import ai.linfra.resource_app.intent.persistence.IntentRepository
 import ai.linfra.resource_app.outbox.persistence.OutboxJob
 import ai.linfra.resource_app.outbox.persistence.OutboxJobRepository
+import ai.linfra.resource_app.policy.model.PolicyDecision
+import ai.linfra.resource_app.policy.service.PolicyService
+import ai.linfra.resource_app.tenant.persistence.TenantRepository
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
@@ -16,6 +21,9 @@ import java.util.UUID
 class IntentService(
     private val intents: IntentRepository,
     private val jobs: OutboxJobRepository,
+    private val policy: PolicyService,
+    private val tenants: TenantRepository,
+    @Value("\${linfra.policy.approval-ttl}") private val approvalTtl: Duration,
 ) {
 
     /**
@@ -32,6 +40,37 @@ class IntentService(
         intent.approvedAt = now
         intent.approvalExpiresAt = now.plus(ttl)
         jobs.save(OutboxJob(intentId = intent.id))
+        return intent
+    }
+
+    /** A human approves an intent the policy left waiting. The hard rules are checked again: spend may have changed. */
+    @Transactional
+    fun approveByHuman(tenantId: UUID, intentId: UUID): Intent {
+        val intent = waitingForApproval(tenantId, intentId)
+        tenants.lockById(tenantId)
+        when (val decision = policy.decide(intent, allowAutoApprove = false)) {
+            is PolicyDecision.Reject -> {
+                intent.moveTo(IntentState.REJECTED)
+                intent.decisionReason = decision.reason
+            }
+            else -> {
+                intent.decisionReason = "approved by a human"
+                approve(tenantId, intentId, intent.planHash!!, approvalTtl)
+            }
+        }
+        return intent
+    }
+
+    @Transactional
+    fun rejectByHuman(tenantId: UUID, intentId: UUID): Intent =
+        waitingForApproval(tenantId, intentId).apply {
+            moveTo(IntentState.REJECTED)
+            decisionReason = "rejected by a human"
+        }
+
+    private fun waitingForApproval(tenantId: UUID, intentId: UUID): Intent {
+        val intent = intents.findByIdAndTenantId(intentId, tenantId) ?: throw IntentNotFoundException(intentId)
+        if (intent.state != IntentState.PLANNED) throw IntentNotActionableException("intent is ${intent.state}, not waiting for approval")
         return intent
     }
 }

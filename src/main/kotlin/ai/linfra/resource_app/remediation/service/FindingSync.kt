@@ -7,6 +7,7 @@ import ai.linfra.resource_app.remediation.model.FindingType
 import ai.linfra.resource_app.remediation.model.RemediationAction
 import ai.linfra.resource_app.remediation.persistence.Finding
 import ai.linfra.resource_app.remediation.persistence.FindingRepository
+import ai.linfra.resource_app.tenant.persistence.TenantRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -15,14 +16,21 @@ import org.springframework.transaction.annotation.Transactional
  * no longer observed. A subject the user dismissed or accepted is not reopened.
  */
 @Service
-class FindingSync(private val findings: FindingRepository) {
+class FindingSync(
+    private val findings: FindingRepository,
+    private val tenants: TenantRepository,
+) {
 
     private val suppressing = RemediationAction.entries.filter { it.suppressesFinding }
 
     @Transactional
     fun sync(report: ReconciliationReport) {
         val now = report.checkedAt
-        val drafts = drafts(report).associateBy { it.subjectKey }
+        // A tenant_id label naming no known tenant (mislabeled, or from another environment) is treated like a missing
+        // label: the finding is unattributed. Otherwise the foreign key would fail the whole sync, every run.
+        val known = tenants.findAllById(drafts(report).mapNotNull { it.tenantId }.toSet()).map { it.id }.toSet()
+        val drafts = drafts(report).map { if (it.tenantId != null && it.tenantId !in known) it.copy(tenantId = null) else it }
+            .associateBy { it.subjectKey }
         val open = findings.findAllByStatus(FindingStatus.OPEN).associateBy { it.subjectKey }
 
         drafts.values.forEach { d ->

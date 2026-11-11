@@ -38,12 +38,13 @@ class DraftConfirmationTest : IntegrationTest() {
     }
 
     @Test
-    fun `confirming a draft creates a PROPOSED intent linked to the conversation and message`() {
+    fun `confirming a draft creates a planned intent linked to the conversation and message`() {
         val messageId = draftMessageId()
 
         val intent = confirmation.confirm(tenantId, conversationId, messageId)
 
-        assertEquals(IntentState.PROPOSED, intent.state)
+        assertEquals(IntentState.APPROVED, intent.state) // a cheap staging VM is within the default policy
+        assertEquals(1, jobs.findAll().count { it.intentId == intent.id })
         assertEquals(tenantId, intent.tenantId)
         assertEquals(conversationId, intent.conversationId)
         assertEquals(messageId, intent.sourceMessageId)

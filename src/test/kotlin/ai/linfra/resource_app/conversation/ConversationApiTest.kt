@@ -36,6 +36,23 @@ class ConversationApiTest : IntegrationTest() {
     }
 
     @Test
+    fun `conversations are listed newest first, titled by their first message, per tenant`() {
+        whenever(agent.reply(any())) doReturn AgentReplies.ask()
+        sendJson("""{"text":"small EU VM for staging\nwith more detail"}""").andExpect { status { isOk() } }
+        sendJson("""{"text":"a second message"}""").andExpect { status { isOk() } }
+        val other = "other-${UUID.randomUUID()}"
+        tenant(other)
+
+        mvc.get("/api/v1/conversations") { auth() }.andExpect {
+            status { isOk() }
+            jsonPath("$.length()") { value(1) }
+            jsonPath("$[0].id") { value(conversationId) }
+            jsonPath("$[0].title") { value("small EU VM for staging") }
+        }
+        mvc.get("/api/v1/conversations") { auth(other) }.andExpect { jsonPath("$.length()") { value(0) } }
+    }
+
+    @Test
     fun `a role sent by the client is ignored`() {
         whenever(agent.reply(any())) doReturn AgentReplies.ask()
 
@@ -85,7 +102,7 @@ class ConversationApiTest : IntegrationTest() {
             status { isOk() }
             jsonPath("$.messages.length()") { value(2) }
             jsonPath("$.messages[1].draft.pick.entry.instanceType") { value("burst.medium") }
-            jsonPath("$.intents[0].state") { value("PROPOSED") }
+            jsonPath("$.intents[0].state") { value("APPROVED") } // within the default policy: auto-approved
             jsonPath("$.intents[0].sourceMessageId") { value(draftId!!.toInt()) }
         }
     }

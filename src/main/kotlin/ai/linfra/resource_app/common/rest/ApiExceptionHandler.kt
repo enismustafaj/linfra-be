@@ -3,6 +3,8 @@ package ai.linfra.resource_app.common.rest
 import ai.linfra.resource_app.conversation.exception.ConversationNotFoundException
 import ai.linfra.resource_app.conversation.exception.DraftNotConfirmableException
 import ai.linfra.resource_app.conversation.exception.InvalidMessageException
+import ai.linfra.resource_app.intent.exception.IntentNotActionableException
+import ai.linfra.resource_app.policy.exception.InvalidPolicyException
 import ai.linfra.resource_app.intent.exception.IntentNotFoundException
 import ai.linfra.resource_app.remediation.exception.ActionNotAllowedException
 import ai.linfra.resource_app.remediation.exception.FindingNotFoundException
@@ -24,10 +26,10 @@ class ApiExceptionHandler {
     @ExceptionHandler(ConversationNotFoundException::class, IntentNotFoundException::class, ResourceNotFoundException::class, FindingNotFoundException::class)
     fun notFound() = ResponseEntity.notFound().build<Unit>()
 
-    @ExceptionHandler(DraftNotConfirmableException::class, ActionNotAllowedException::class, ObjectOptimisticLockingFailureException::class)
+    @ExceptionHandler(DraftNotConfirmableException::class, ActionNotAllowedException::class, IntentNotActionableException::class, ObjectOptimisticLockingFailureException::class)
     fun conflict(e: RuntimeException) = error(HttpStatus.CONFLICT, e.message)
 
-    @ExceptionHandler(InvalidMessageException::class)
+    @ExceptionHandler(InvalidMessageException::class, InvalidPolicyException::class)
     fun badRequest(e: RuntimeException) = error(HttpStatus.BAD_REQUEST, e.message)
 
     @ExceptionHandler(TransientAiException::class, NonTransientAiException::class, RestClientException::class)

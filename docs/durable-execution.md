@@ -30,6 +30,8 @@ The exits are `REJECTED`, `EXPIRED` (re-plan and re-approve), `FAILED` (nothing 
 (outcome uncertain; a human decides).
 
 - `Intent.moveTo` rejects illegal transitions.
+- `APPLYING → EXPIRED` happens only when the plan changed since approval and nothing was applied
+  ([policy.md](policy.md)).
 - `@Version` stops two concurrent transitions on the same intent from both committing.
 
 ## Approval and outbox

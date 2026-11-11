@@ -18,4 +18,7 @@ class Conversation(
 
     @Column(name = "created_at")
     val createdAt: Instant = Instant.now(),
+
+    /** The start of the first message; null until the user writes something. */
+    var title: String? = null,
 )

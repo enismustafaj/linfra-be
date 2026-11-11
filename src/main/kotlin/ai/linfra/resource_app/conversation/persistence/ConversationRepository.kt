@@ -5,4 +5,5 @@ import java.util.UUID
 
 interface ConversationRepository : JpaRepository<Conversation, UUID> {
     fun findByIdAndTenantId(id: UUID, tenantId: UUID): Conversation?
+    fun findAllByTenantIdOrderByCreatedAtDesc(tenantId: UUID): List<Conversation>
 }

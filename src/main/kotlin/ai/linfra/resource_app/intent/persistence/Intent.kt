@@ -37,6 +37,10 @@ class Intent(
     @Column(name = "approval_expires_at")
     var approvalExpiresAt: Instant? = null,
 
+    /** Why the policy rejected it, why it waits for a human, or who approved it. */
+    @Column(name = "decision_reason")
+    var decisionReason: String? = null,
+
     /** Set when the intent came from chat; null for other proposers. */
     @Column(name = "conversation_id")
     val conversationId: UUID? = null,

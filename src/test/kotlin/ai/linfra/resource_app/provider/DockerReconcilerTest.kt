@@ -5,7 +5,9 @@ import ai.linfra.resource_app.conversation.model.Draft
 import ai.linfra.resource_app.intent.model.IntentState
 import ai.linfra.resource_app.intent.persistence.Intent
 import ai.linfra.resource_app.intent.persistence.IntentRepository
+import ai.linfra.resource_app.intent.service.IntentPlanner
 import ai.linfra.resource_app.intent.service.IntentService
+import org.springframework.transaction.support.TransactionTemplate
 import ai.linfra.resource_app.outbox.model.Claim
 import ai.linfra.resource_app.outbox.service.OutboxWorker
 import ai.linfra.resource_app.provider.service.Provisioner
@@ -48,6 +50,8 @@ class DockerReconcilerTest {
     @Autowired lateinit var provisioner: Provisioner
     @Autowired lateinit var reconciler: Reconciler
     @Autowired lateinit var objectMapper: ObjectMapper
+    @Autowired lateinit var planner: IntentPlanner
+    @Autowired lateinit var tx: TransactionTemplate
     @Autowired lateinit var findings: FindingRepository
     @Autowired lateinit var remediation: RemediationService
 
@@ -57,8 +61,10 @@ class DockerReconcilerTest {
     private fun provisioned(): Intent {
         val tenant = tenants.save(Tenant(name = "t", apiKeyHash = UUID.randomUUID().toString()))
         val draft = Draft(RankerFixtures.base, RankerFixtures.ranker.pick(RankerFixtures.base)!!, "why")
-        val intent = intents.save(Intent(tenantId = tenant.id, spec = objectMapper.convertValue(draft), state = IntentState.PLANNED, planHash = "h"))
-        intentService.approve(tenant.id, intent.id, "h", Duration.ofMinutes(10))
+        // The real path: plan (hash of the compiled workspace) and policy, which auto-approves a cheap staging VM.
+        val proposed = intents.save(Intent(tenantId = tenant.id, spec = objectMapper.convertValue(draft)))
+        val intent = tx.execute { planner.planAndDecide(intents.findById(proposed.id).get()) }!!
+        assertEquals(IntentState.APPROVED, intent.state)
         created += Claim(0, intent.id, intent.tenantId, intent.spec, 0, 0)
         worker.processNext("it")
         assertEquals(IntentState.SUCCEEDED, intents.findById(intent.id).get().state)

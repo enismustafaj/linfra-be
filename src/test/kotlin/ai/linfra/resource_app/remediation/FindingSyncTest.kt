@@ -23,6 +23,15 @@ class FindingSyncTest : RemediationTest() {
     }
 
     @Test
+    fun `a container labeled with an unknown tenant becomes an unattributed finding, not a failed sync`() {
+        val stranger = observed("c-1", null).copy(intentId = java.util.UUID.randomUUID(), tenantId = java.util.UUID.randomUUID())
+
+        reconcileWith(stranger)
+
+        assertEquals(null, open(FindingType.ORPHAN).tenantId)
+    }
+
+    @Test
     fun `a problem that disappears is cleared`() {
         reconcileWith(observed("c-1", plannedIntent()))
         val finding = open(FindingType.ORPHAN)

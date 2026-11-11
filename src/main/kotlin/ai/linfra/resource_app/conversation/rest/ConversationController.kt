@@ -1,6 +1,7 @@
 package ai.linfra.resource_app.conversation.rest
 
 import ai.linfra.resource_app.conversation.rest.dto.ConversationResponse
+import ai.linfra.resource_app.conversation.rest.dto.ConversationSummary
 import ai.linfra.resource_app.conversation.rest.dto.IntentSummary
 import ai.linfra.resource_app.conversation.rest.dto.MessageResponse
 import ai.linfra.resource_app.conversation.rest.dto.SendMessageRequest
@@ -25,6 +26,10 @@ class ConversationController(
     private val chat: ChatService,
     private val confirmation: DraftConfirmationService,
 ) {
+    /** The tenant's conversations, newest first, for a thread list. */
+    @GetMapping
+    fun list(tenant: TenantContext) = conversations.list(tenant.tenantId).map(ConversationSummary::of)
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     fun start(tenant: TenantContext) = mapOf("id" to conversations.start(tenant.tenantId).id)
