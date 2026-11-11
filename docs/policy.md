@@ -42,16 +42,23 @@ An approval is valid for `approval-ttl` (1 hour): if no worker started by then, 
 
 | Method | Path | For |
 |---|---|---|
+| `GET` | `/api/v1/policy` | The tenant's effective policy, committed spend, and the catalog's types and regions |
+| `PUT` | `/api/v1/policy` | Save it. Types and regions must exist in the catalog; budget > 0; auto-approve limit between 0 and the budget |
 | `POST` | `/api/v1/intents/{id}/plan` | `PROPOSED` or `EXPIRED` intents |
 | `POST` | `/api/v1/intents/{id}/approve` | intents waiting for a human |
 | `POST` | `/api/v1/intents/{id}/reject` | intents waiting for a human |
 
 `decisionReason` on each intent says why it was rejected, why it waits, or who approved it.
 
-## Limitation
+In the web UI, the **Policy** page edits the policy (with committed spend against the budget), and the **Intents**
+page has Plan, Approve and Reject buttons. A saved policy applies to decisions made from then on; intents already
+waiting are checked against it when approved.
 
-The plan is the hash of the compiled workspace, not a saved `tofu plan` file. A saved plan would let a reviewer see
-the exact changes; the hash already guarantees that what is applied is what was approved.
+## Limitations
+
+- Any API key of a tenant can change its policy; there are no roles yet.
+- The plan is the hash of the compiled workspace, not a saved `tofu plan` file. A saved plan would let a reviewer see
+  the exact changes; the hash already guarantees that what is applied is what was approved.
 
 ## Classes
 

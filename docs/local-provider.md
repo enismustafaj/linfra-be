@@ -32,6 +32,10 @@ outbox, compiler and recovery don't change.
 
 ## Tests
 
-`mvn verify -Ptofu` (needs `tofu` and Docker): `docker-vm` module tests with a mock provider, plus
-`DockerProvisioningTest`, which creates real containers, checks that a crashed worker's container is adopted rather
-than duplicated, and destroys everything afterwards.
+`mvn verify -Ptofu` (needs `tofu` and Docker), all against real containers and destroying everything afterwards:
+
+- `docker-vm` module tests with a mock provider.
+- `DockerProvisioningTest`: the full path from plan and policy to a container; a crashed worker's container is adopted
+  rather than duplicated.
+- `DockerReconcilerTest`: drift (`docker update`), missing (`docker rm`) and orphans are found, and destroying an
+  orphan through a finding removes it.

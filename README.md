@@ -15,31 +15,98 @@ What it guarantees:
 - **Every request ends in a known state**: succeeded, failed, expired, or flagged for a human.
 - **The provider is the source of truth.** A reconciler compares what actually exists with Linfra's records every
   minute and reports drift, missing resources, orphans and duplicates as findings a user resolves.
-- **Tenant isolation.** Each API key sees only its own conversations, intents and resources.
+- **Tenant isolation.** Each API key sees only its own conversations, intents, resources, findings and policy.
 - **No injection into infrastructure code.** Linfra never generates Terraform, only allow-listed variable values for
   checked-in modules.
-
 - **Policy before anything runs.** Each request is checked against its tenant's allowed types, regions and monthly
   budget: within limits it's approved automatically, above them a human approves, and approval is bound to the exact
   plan that will be applied.
 
 It's a sandbox project: VMs are Docker containers on a local, simulated cloud, so everything runs without a cloud
-account. Feature documentation lives in [docs/](docs/).
+account. Feature documentation lives in [docs/](docs/); a minimal web UI lives in
+[linfra-fe](https://github.com/enismustafaj/linfra-fe).
+
+## Running locally
+
+**Prerequisites:** JDK 21+, Maven, Docker, [OpenTofu](https://opentofu.org) on the `PATH` (`brew install opentofu`),
+Node.js for the web UI, and an API key for an OpenAI-compatible LLM (OpenAI or OpenRouter).
+
+1. **Start Postgres** (Linfra's tables and OpenTofu's state live in it):
+   ```sh
+   docker compose up -d
+   ```
+
+2. **Start the backend** on `:8080`. Flyway creates the schema on first start.
+   ```sh
+   mvn -DskipTests package
+   OPENAI_API_KEY=sk-... java -jar target/resource-app-0.0.1-SNAPSHOT.jar
+   ```
+   For OpenRouter, also set `OPENAI_BASE_URL=https://openrouter.ai/api` and `OPENAI_MODEL=openai/gpt-4.1-mini`.
+
+3. **Create a tenant.** Its API key is `demo-key`; only the key's hash is stored:
+   ```sh
+   docker compose exec postgres psql -U linfra -d linfra -c \
+     "insert into tenants (id, name, api_key_hash) values (gen_random_uuid(), 'demo', encode(sha256('demo-key'), 'hex'));"
+   ```
+
+4. **Start the web UI** from [linfra-fe](https://github.com/enismustafaj/linfra-fe) and open http://localhost:4200.
+   Its dev server proxies `/api` to `:8080` and adds `demo-key` to every call.
+   ```sh
+   cd ../linfra-fe && npm install && npm start
+   ```
+
+Or call the API directly with `Authorization: Bearer demo-key`, e.g.
+`curl -H "Authorization: Bearer demo-key" localhost:8080/api/v1/intents`.
+
+### Configuration
+
+| Variable | Default | |
+|---|---|---|
+| `OPENAI_API_KEY` | none | Without it, chat replies with `503`; everything else works |
+| `OPENAI_BASE_URL` | `https://api.openai.com` | Any OpenAI-compatible API with structured outputs |
+| `OPENAI_MODEL` | `gpt-4.1-mini` | |
+| `DB_URL`, `DB_USER`, `DB_PASSWORD` | `jdbc:postgresql://localhost:5432/linfra`, `linfra`, `linfra` | |
+| `WORKER_THREADS` | `4` | Worker threads per process |
+| `LINFRA_RECONCILER_ENABLED` | `true` | Reconciler runs every minute |
+| `PORT` | `8080` | |
+
+Policy defaults (monthly budget €200, auto-approve up to €50, production needs approval) are in
+`application.yaml` under `linfra.policy`; each tenant can override them on the Policy page.
+
+### Tests
+
+```sh
+mvn verify          # unit and integration tests against Postgres in Testcontainers; needs Docker
+mvn verify -Ptofu   # adds OpenTofu module tests and real provisioning on Docker; needs tofu
+```
+
+### Cleaning up
+
+Containers Linfra created carry the `managed_by=linfra` label:
+
+```sh
+docker rm -f $(docker ps -aq --filter label=managed_by=linfra)
+docker volume rm $(docker volume ls -q --filter label=managed_by=linfra)
+docker compose down -v   # also deletes the database, including OpenTofu state
+```
 
 ## Architecture
 
-Spring Boot (Kotlin), Postgres, JPA, Flyway, OpenTofu. Spring AI talks to OpenAI. The only provider today is a local,
-simulated cloud where Docker containers stand in for VMs; real clouds plug into the same seams.
+Spring Boot (Kotlin), Postgres, JPA, Flyway, OpenTofu. Spring AI talks to any OpenAI-compatible API (OpenAI,
+OpenRouter). The only provider today is a local, simulated cloud where Docker containers stand in for VMs; real clouds
+plug into the same seams.
 
 ```mermaid
 flowchart TB
-    client([Developer or agent])
+    client([Web UI or agent])
 
     subgraph api["HTTP API · API key → tenant"]
         direction LR
         conv[Conversations]
+        intapi[Intents]
         res[Resources]
         findapi[Findings]
+        polapi[Policy]
     end
 
     subgraph chat["1 · Request → intent"]
@@ -50,14 +117,18 @@ flowchart TB
         confirm[DraftConfirmation]
     end
 
-    subgraph exec["2 · Durable execution"]
-        approve[Planner + policy<br/>auto-approve or wait for a human]
+    subgraph decide["2 · Plan + policy"]
+        planner[IntentPlanner<br/>plan hash of compiled workspace]
+        policy[Policy<br/>auto-approve · wait for a human · reject]
+    end
+
+    subgraph exec["3 · Durable execution"]
         pool[WorkerPool<br/>lease + fencing]
-        prov[Provisioner<br/>find, else apply]
+        prov[Provisioner<br/>find, else apply the approved plan]
         tofu[TerraformCompiler<br/>+ TofuRunner]
     end
 
-    subgraph reconcile["3 · Reconciliation"]
+    subgraph reconcile["4 · Reconciliation"]
         reconciler[Reconciler<br/>every minute]
         remed[Remediation<br/>user picks an action]
     end
@@ -65,22 +136,27 @@ flowchart TB
     subgraph pg["Postgres"]
         direction LR
         intents[(intents)]
+        policies[(policies)]
         outbox[(outbox_jobs)]
         resources[(resources)]
         findings[(findings)]
         state[(OpenTofu state)]
     end
 
-    llm[[OpenAI · untrusted]]
+    llm[[LLM · OpenAI-compatible · untrusted]]
     docker[(Docker daemon<br/>containers as VMs)]
 
-    client --> conv & res & findapi
+    client --> conv & intapi & res & findapi & polapi
 
     conv --> chatsvc --> agent --> llm
     chatsvc --> drafts --> ranker
-    conv --> confirm -- PROPOSED --> intents
+    conv --> confirm --> planner
+    intapi -- plan / approve / reject --> planner
+    planner --> policy
+    policy -- reads --> policies
+    polapi -- edit --> policies
+    planner -- "PLANNED, APPROVED + job: one tx" --> intents & outbox
 
-    approve -- APPROVED + job, one tx --> intents & outbox
     pool -- claim --> outbox
     pool --> prov
     prov -- find by intent_id --> docker
@@ -102,11 +178,11 @@ Docker) runs inside a database transaction.
 ### Request flow
 
 1. A user chats; the LLM turns the request into typed requirements. Invalid output never becomes a draft.
-2. The ranker picks the instance type from the catalog; the user confirms the draft, which creates a `PROPOSED` intent.
-3. In the same transaction, the planner hashes the compiled workspace and the policy decides: approved (with its
-   outbox job), waiting for a human, or rejected.
+2. The ranker picks the instance type from the catalog; the user confirms the draft, which creates an intent.
+3. In the same transaction, the planner hashes the compiled workspace and the tenant's policy decides: approved (with
+   its outbox job), waiting for a human to approve on the Intents page, or rejected.
 4. A worker thread claims the job with a lease and fencing token, records the run, calls `find()`, and only if nothing
-   exists runs `tofu apply`.
+   exists runs `tofu apply`, after checking that the workspace still hashes to the approved plan.
 5. The resource row and `SUCCEEDED` commit together. The reconciler keeps checking the provider against the records
    and opens findings; users resolve them with the actions each finding offers.
 

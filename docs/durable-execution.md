@@ -76,6 +76,7 @@ A resource outlives its intent: it gets reconciled, can drift, and gets destroye
 | Worker dies after apply, before recording | The new worker's `find()` adopts the container (tested on real Docker) |
 | Apply throws | Retry with exponential backoff (5 min cap); after `max-attempts` → `NEEDS_ATTENTION` |
 | Approval expired before start | Intent → `EXPIRED`, nothing applied |
+| Plan changed since approval (module, catalog or values) | The worker's hash check fails before apply: intent → `EXPIRED`, re-plan |
 
 ## Classes
 

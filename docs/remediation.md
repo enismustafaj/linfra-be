@@ -1,7 +1,7 @@
 # Remediation
 
 The reconciler finds problems; a user decides what to do about each one. Every finding offers the actions that
-make sense for it right now, and the user picks one through the API.
+make sense for it right now, and the user picks one on the Findings page or through the API.
 
 ## Findings
 
@@ -37,8 +37,8 @@ the worker).
 | `GET` | `/api/v1/findings/{id}` | One finding; another tenant's is `404` |
 | `POST` | `/api/v1/findings/{id}/actions` `{"action": "KEEP", "cloudId": "..."}` | The resolved finding; an action not on offer is `409` |
 
-Findings about resources without a tenant label belong to nobody, so no tenant sees them; they appear only in the
-reconciler metrics.
+Findings about resources without a tenant label, or labeled with a tenant Linfra doesn't know, belong to nobody, so
+no tenant sees them; they appear only in the reconciler metrics.
 
 ## How an action runs
 
